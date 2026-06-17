@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--red:#CC0033;--redd:#99001F;--redl:#FAE6EB;}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f5;color:#111;font-size:16px;}
+.topbar{background:white;border-bottom:1px solid #e5e5e5;padding:0 1rem;display:flex;align-items:center;justify-content:space-between;height:52px;}
+.logo{font-size:20px;font-weight:700;color:var(--red);letter-spacing:-0.5px;}
+.logo span{font-weight:300;}
+.tabs{display:flex;background:white;border-bottom:1px solid #e5e5e5;}
+.tab{flex:1;padding:12px 6px;font-size:13px;border:none;background:none;cursor:pointer;color:#888;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.15s;}
+.tab.active{color:var(--red);border-bottom-color:var(--red);font-weight:600;}
+.screen{display:none;padding:1rem;flex-direction:column;gap:1rem;max-width:640px;margin:0 auto;width:100%;}
+.screen.active{display:flex;}
+.card{background:white;border:1px solid #e5e5e5;border-radius:10px;padding:1rem;}
+.card-title{font-size:10px;font-weight:600;color:#999;margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.07em;}
+input[type=text],input[type=number]{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:16px;background:white;color:#111;-webkit-appearance:none;}
+input:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px rgba(204,0,51,.1);}
+.field-label{font-size:12px;color:#999;margin-bottom:5px;font-weight:500;}
+.search-wrap{position:relative;}
+.dd{position:absolute;top:calc(100% + 4px);left:0;right:0;background:white;border:1px solid #ddd;border-radius:8px;max-height:240px;overflow-y:auto;z-index:200;display:none;box-shadow:0 4px 16px rgba(0,0,0,.12);}
+.dd.open{display:block;}
+.ddi{padding:12px;cursor:pointer;font-size:14px;border-bottom:1px solid #f0f0f0;}
+.ddi:last-child{border-bottom:none;}
+.ddi:active,.ddi:hover{background:var(--redl);}
+.ddi-ref{font-weight:600;font-size:12px;font-family:monospace;color:var(--red);}
+.ddi-name{font-size:13px;color:#444;margin-top:2px;}
+.spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.spec{background:#f8f8f8;border-radius:8px;padding:10px 12px;}
+.spec-label{font-size:10px;color:#999;text-transform:uppercase;letter-spacing:.05em;}
+.spec-value{font-size:15px;font-weight:600;margin-top:2px;}
+.btn{width:100%;padding:14px;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;transition:all .15s;}
+.btn-primary{background:var(--red);color:white;}
+.btn-primary:active{background:var(--redd);transform:scale(.98);}
+.btn-secondary{background:#f0f0f0;color:#333;border:1px solid #ddd;}
+.btn-sm{padding:8px 16px;font-size:13px;border-radius:6px;width:auto;}
+.btn-danger{background:#fee;color:#c00;border:1px solid #fcc;}
+.palet-id{font-size:22px;font-weight:700;color:var(--red);letter-spacing:.03em;}
+.palet-meta{font-size:12px;color:#888;margin-top:2px;}
+#qr-wrap{display:flex;justify-content:center;padding:.75rem 0;}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600;}
+.badge-ok{background:#eaf3de;color:#3b6d11;}
+.badge-err{background:#fcebeb;color:#a32d2d;}
+.badge-pend{background:var(--redl);color:var(--red);}
+.badge-anul{background:#f0f0f0;color:#999;}
+.alert{padding:14px 16px;border-radius:8px;font-size:14px;line-height:1.6;}
+.alert-ok{background:#eaf3de;color:#3b6d11;border:1px solid #c0dd97;}
+.alert-err{background:#fcebeb;color:#a32d2d;border:1px solid #f7c1c1;}
+.alert-warn{background:#faeeda;color:#854f0b;border:1px solid #fac775;}
+.chips{display:flex;gap:6px;flex-wrap:wrap;}
+.chip{padding:8px 16px;border-radius:100px;border:1px solid #ddd;background:white;cursor:pointer;font-size:14px;color:#666;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.chip.on{background:var(--red);color:white;border-color:var(--red);}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.stat{background:white;border:1px solid #e5e5e5;border-radius:10px;padding:12px;text-align:center;}
+.stat-n{font-size:26px;font-weight:700;}
+.stat-l{font-size:10px;color:#999;text-transform:uppercase;letter-spacing:.04em;margin-top:2px;}
+.hi{padding:10px 0;border-bottom:1px solid #f0f0f0;}
+.hi:last-child{border-bottom:none;}
+.hi-top{display:flex;align-items:center;gap:8px;}
+.hi-id{font-size:12px;font-weight:600;font-family:monospace;color:var(--red);flex:1;}
+.hi-name{font-size:13px;margin-top:2px;color:#333;}
+.hi-meta{font-size:11px;color:#999;margin-top:1px;}
+.hi-actions{margin-top:6px;}
+.print-row{display:flex;gap:8px;margin-top:10px;align-items:center;}
+.print-btn{flex:1;background:#f0f0f0;border:1px solid #ddd;border-radius:8px;padding:13px;cursor:pointer;font-size:14px;color:#555;display:flex;align-items:center;justify-content:center;gap:6px;}
+.copies-wrap{display:flex;align-items:center;gap:8px;background:#f8f8f8;border:1px solid #e5e5e5;border-radius:8px;padding:6px 12px;}
+.copies-label{font-size:13px;color:#666;white-space:nowrap;}
+.copies-btn{width:32px;height:32px;border-radius:50%;border:1px solid #ddd;background:white;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#333;flex-shrink:0;}
+.copies-val{font-size:18px;font-weight:700;color:var(--red);min-width:24px;text-align:center;}
+/* Pestañas buscador */
+.search-tabs{display:flex;gap:0;margin-bottom:1rem;border:1px solid #ddd;border-radius:8px;overflow:hidden;}
+.search-tab{flex:1;padding:10px;font-size:13px;border:none;background:#f8f8f8;cursor:pointer;color:#666;font-weight:500;transition:all .15s;}
+.search-tab.on{background:var(--red);color:white;}
+/* Buscador por medidas */
+.dim-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem;}
+.dim-field{display:flex;flex-direction:column;gap:4px;}
+.dim-results{display:flex;flex-direction:column;gap:6px;}
+.dim-item{padding:12px;border:1.5px solid #ddd;border-radius:8px;cursor:pointer;transition:all .15s;}
+.dim-item:active,.dim-item:hover{border-color:var(--red);background:var(--redl);}
+.dim-item-ref{font-size:12px;font-family:monospace;font-weight:700;color:var(--red);}
+.dim-item-name{font-size:13px;color:#333;display:inline;}
+.dim-item-specs{display:none;}
+.print-labels{display:none;}
+.modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center;}
+.modal.open{display:flex;}
+.modal-box{background:white;border-radius:12px;padding:1.5rem;width:90%;max-width:360px;text-align:center;}
+.modal-id{font-size:22px;font-weight:700;color:var(--red);letter-spacing:.05em;margin-bottom:4px;}
+.modal-name{font-size:13px;color:#666;margin-bottom:1rem;}
+.modal-close{margin-top:1rem;width:100%;padding:12px;border:none;border-radius:8px;background:#f0f0f0;font-size:15px;cursor:pointer;}
+.cam-wrap{position:relative;width:100%;background:#000;border-radius:8px;overflow:hidden;display:none;}
+.cam-wrap video{width:100%;display:block;}
+.cam-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:200px;height:200px;border:3px solid var(--red);border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,0.4);}
+.cam-hint{text-align:center;font-size:13px;color:#999;margin-top:6px;display:none;}
+.btn-cam{background:#f0f0f0;border:1px solid #ddd;border-radius:8px;padding:11px;cursor:pointer;font-size:14px;color:#555;display:flex;align-items:center;justify-content:center;gap:6px;width:100%;}
+.btn-cam.active{background:var(--redl);border-color:var(--red);color:var(--red);}
+@media print{
+  .no-print{display:none!important;}
+  body{background:white;margin:0;}
+  .print-labels{display:block;}
+  .label-page{page-break-after:always;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;min-height:100vh;}
+  .label-page:last-child{page-break-after:avoid;}
+  .label-box{border:2px solid #000;padding:16px 20px;width:100%;max-width:380px;font-family:Arial,sans-serif;}
+  .label-id{font-size:28px;font-weight:700;color:#CC0033;letter-spacing:2px;margin-bottom:4px;}
+  .label-ref{font-size:11px;font-family:monospace;color:#333;margin-bottom:8px;word-break:break-all;}
+  .label-name{font-size:13px;font-weight:600;margin-bottom:10px;line-height:1.3;}
+  .label-specs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
+  .label-spec{border:1px solid #ddd;padding:4px 8px;}
+  .label-spec-l{font-size:9px;color:#999;text-transform:uppercase;}
+  .label-spec-v{font-size:13px;font-weight:700;}
+  .label-qr{display:flex;justify-content:center;margin-top:8px;}
+  .label-footer{font-size:10px;color:#999;text-align:center;margin-top:8px;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar no-print">
+  <div class="logo">T<span>eklan</span></div>
+  <span style="font-size:11px;color:#999;">Control MMPP</span>
+</div>
+<div class="tabs no-print">
+  <button class="tab active" onclick="go('rec',this)">📥 Recepción</button>
+  <button class="tab" onclick="go('maq',this)">🔧 Máquina</button>
+  <button class="tab" onclick="go('hist',this)">📋 Historial</button>
+</div>
+
+<!-- RECEPCIÓN -->
+<div id="s-rec" class="screen active">
+  <div class="card">
+    <div class="card-title">Operario de recepción</div>
+    <div class="chips" id="c-rec">
+      <div class="chip on" onclick="cu(this,'rec','Iñigo')">Iñigo</div>
+      <div class="chip" onclick="cu(this,'rec','Alexander')">Alexander</div>
+      <div class="chip" onclick="cu(this,'rec','Oli')">Oli</div>
+      <div class="chip" onclick="cu(this,'rec','Iker')">Iker</div>
+      <div class="chip" onclick="cu(this,'rec','Otro')">Otro</div>
+    </div>
+    <div id="otro-rec-wrap" style="display:none;margin-top:.75rem;">
+      <input type="text" id="otro-rec-inp" placeholder="Escribe tu nombre..." autocomplete="off" oninput="uRecOtro(this.value)">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Buscar referencia</div>
+    <div class="search-tabs">
+      <button class="search-tab" onclick="switchSearch('ref',this)">Por referencia o nombre</button>
+      <button class="search-tab on" onclick="switchSearch('dim',this)">Por espesor / dimensiones</button>
+    </div>
+
+    <!-- Buscador por referencia -->
+    <div id="search-ref" style="display:none;">
+      <div class="search-wrap">
+        <input type="text" id="ref-inp" placeholder="Escribe referencia, tipo de acero..." autocomplete="off" autocorrect="off" spellcheck="false" oninput="sr()" onfocus="sr()">
+        <div class="dd" id="ref-dd"></div>
+      </div>
+    </div>
+
+    <!-- Buscador por dimensiones -->
+    <div id="search-dim">
+      <div class="dim-grid">
+        <div class="dim-field">
+          <div class="field-label">Espesor (mm)</div>
+          <input type="number" id="dim-esp" placeholder="ej: 1.5" step="0.01" min="0">
+        </div>
+        <div class="dim-field">
+          <div class="field-label">Ancho (mm)</div>
+          <input type="number" id="dim-anc" placeholder="ej: 1250">
+        </div>
+        <div class="dim-field">
+          <div class="field-label">Largo (mm)</div>
+          <input type="number" id="dim-lar" placeholder="ej: 3000">
+        </div>
+        <div class="dim-field">
+          <div class="field-label">Tipo de material</div>
+          <input type="text" id="dim-tipo" placeholder="ej: inox, DC01, S235...">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="sd()" style="margin-bottom:.75rem;">🔍 Buscar</button>
+      <div class="dim-results" id="dim-results"></div>
+    </div>
+  </div>
+
+  <div class="card" id="ref-det" style="display:none;">
+    <div class="card-title">Material seleccionado</div>
+    <div style="margin-bottom:.75rem;">
+      <div style="font-size:11px;font-family:monospace;color:var(--red);font-weight:600;" id="d-ref"></div>
+      <div style="font-size:15px;font-weight:600;margin-top:3px;" id="d-name"></div>
+    </div>
+    <div class="spec-grid" style="margin-bottom:1rem;">
+      <div class="spec"><div class="spec-label">Espesor nominal</div><div class="spec-value" id="d-esp"></div></div>
+      <div class="spec"><div class="spec-label">Medidas</div><div class="spec-value" id="d-med"></div></div>
+      <div class="spec"><div class="spec-label">Tipo</div><div class="spec-value" id="d-mat"></div></div>
+    </div>
+    <button class="btn btn-primary" onclick="reg()">Registrar palet y generar etiqueta</button>
+  </div>
+
+  <div class="card" id="et-card" style="display:none;">
+    <div class="card-title">✅ Etiqueta generada</div>
+    <div style="background:#f8f8f8;border-radius:8px;padding:1rem;">
+      <div class="palet-id" id="e-id"></div>
+      <div class="palet-meta" id="e-meta"></div>
+      <div class="spec-grid" style="margin-top:10px;">
+        <div class="spec"><div class="spec-label">Referencia</div><div class="spec-value" style="font-size:11px;font-family:monospace;" id="e-ref"></div></div>
+        <div class="spec"><div class="spec-label">Espesor nominal</div><div class="spec-value" id="e-esp"></div></div>
+        <div class="spec"><div class="spec-label">Medidas</div><div class="spec-value" id="e-med"></div></div>
+        <div class="spec"><div class="spec-label">Tipo</div><div class="spec-value" id="e-mat"></div></div>
+      </div>
+    </div>
+    <div id="qr-wrap"></div>
+    <div class="print-row">
+      <div class="copies-wrap">
+        <div class="copies-label">Copias:</div>
+        <button class="copies-btn" onclick="chgCopies(-1)">−</button>
+        <div class="copies-val" id="copies-val">1</div>
+        <button class="copies-btn" onclick="chgCopies(1)">+</button>
+      </div>
+      <button class="print-btn" onclick="imprimir()">🖨️ Imprimir</button>
+      <button class="btn btn-secondary" onclick="nuevo()" style="flex:1;">+ Nuevo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MÁQUINA -->
+<div id="s-maq" class="screen">
+  <div class="card">
+    <div class="card-title">Operario de máquina</div>
+    <div class="chips" id="c-maq">
+      <div class="chip on" onclick="cu(this,'maq','Manuel')">Manuel</div>
+      <div class="chip" onclick="cu(this,'maq','Unai')">Unai</div>
+      <div class="chip" onclick="cu(this,'maq','Álex')">Álex</div>
+      <div class="chip" onclick="cu(this,'maq','Mouad')">Mouad</div>
+      <div class="chip" onclick="cu(this,'maq','Jose Miyel')">Jose Miyel</div>
+      <div class="chip" onclick="cu(this,'maq','Libe')">Libe</div>
+      <div class="chip" onclick="cu(this,'maq','Calviño')">Calviño</div>
+      <div class="chip" onclick="cu(this,'maq','Rodolfo')">Rodolfo</div>
+      <div class="chip" onclick="cu(this,'maq','Hamza')">Hamza</div>
+      <div class="chip" onclick="cu(this,'maq','Xabier')">Xabier</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Identificar palet</div>
+    <button class="btn-cam" id="btn-cam" onclick="toggleCam()">📷 Escanear con cámara</button>
+    <div class="cam-wrap" id="cam-wrap">
+      <video id="cam-video" autoplay playsinline muted></video>
+      <div class="cam-overlay"></div>
+    </div>
+    <div class="cam-hint" id="cam-hint">Apunta el QR al recuadro rojo</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:10px;">
+      <div style="flex:1;height:1px;background:#e5e5e5;"></div>
+      <div style="font-size:12px;color:#bbb;">o escribe el código</div>
+      <div style="flex:1;height:1px;background:#e5e5e5;"></div>
+    </div>
+    <input type="text" id="maq-cod" placeholder="PAL-000001" oninput="bp()" autocomplete="off" autocorrect="off" spellcheck="false" style="font-family:monospace;font-size:22px;letter-spacing:.06em;text-transform:uppercase;text-align:center;margin-top:10px;">
+  </div>
+  <div class="card" id="maq-info" style="display:none;">
+    <div class="card-title">Palet identificado</div>
+    <div style="background:#f8f8f8;border-radius:8px;padding:1rem;">
+      <div class="palet-id" id="m-id"></div>
+      <div class="palet-meta" id="m-meta"></div>
+      <div class="spec-grid" style="margin-top:10px;">
+        <div class="spec"><div class="spec-label">Referencia</div><div class="spec-value" style="font-size:11px;font-family:monospace;" id="m-ref"></div></div>
+        <div class="spec"><div class="spec-label">Espesor nominal</div><div class="spec-value" id="m-esp"></div></div>
+        <div class="spec"><div class="spec-label">Medidas</div><div class="spec-value" id="m-med"></div></div>
+        <div class="spec"><div class="spec-label">Tipo</div><div class="spec-value" id="m-mat"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="card" id="maq-verif" style="display:none;">
+    <div class="card-title">Espesor medido con micrómetro (mm)</div>
+    <input type="number" id="maq-medido" placeholder="0.00" step="0.01" min="0.01" style="font-size:32px;font-weight:700;text-align:center;padding:16px;">
+    <div style="margin-top:.75rem;">
+      <button class="btn btn-primary" onclick="verif()">Verificar y registrar</button>
+    </div>
+  </div>
+  <div id="maq-res" style="display:none;"></div>
+</div>
+
+<!-- HISTORIAL -->
+<div id="s-hist" class="screen">
+  <div class="stats">
+    <div class="stat"><div class="stat-n" id="st-tot" style="color:var(--red);">0</div><div class="stat-l">Registrados</div></div>
+    <div class="stat"><div class="stat-n" id="st-ok" style="color:#3b6d11;">0</div><div class="stat-l">OK</div></div>
+    <div class="stat"><div class="stat-n" id="st-err" style="color:#a32d2d;">0</div><div class="stat-l">Alertas</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Últimos registros</div>
+    <div id="hist-lista"><div style="color:#999;font-size:14px;padding:1rem 0;text-align:center;">Sin registros todavía</div></div>
+  </div>
+</div>
+
+<div class="modal" id="qr-modal" onclick="closeModal(event)">
+  <div class="modal-box">
+    <div class="modal-id" id="modal-id"></div>
+    <div class="modal-name" id="modal-name"></div>
+    <div id="modal-qr"></div>
+    <button class="modal-close" onclick="document.getElementById('qr-modal').classList.remove('open')">Cerrar</button>
+  </div>
+</div>
+<div class="print-labels" id="print-labels"></div>
+
+<script>
+const C=[{"ref":"1050/00,80X1250X2500/H24","name":"Aluminio 1050 H241 0,8x1250x2500mm","esp":0.8,"largo":2500,"ancho":1250,"mat":"AL-1050-H24"},{"ref":"1050/01,00X1000X2000/H24","name":"Aluminio 1050 H24 01,00x1000x2000mm","esp":1.0,"largo":2000,"ancho":1000,"mat":"AL-1050-H24"},{"ref":"1050/02,00X1000X2000/H111","name":"Aluminio 1050 H111 02,00x1000x2000mm","esp":2.0,"largo":2000,"ancho":1000,"mat":"AL-1050-H111"},{"ref":"1050/02,00X1000X2000/H24","name":"Aluminio 1050 H24 02,00x1000x2000mm","esp":2.0,"largo":2000,"ancho":1000,"mat":"AL-1050-H24"},{"ref":"1050/03,00X1000X2000/H111","name":"Aluminio 1050 H111 03,00x1000x2000mm","esp":3.0,"largo":2000,"ancho":1000,"mat":"AL-1050-H111"},{"ref":"1050/03,00X1000X2000/H24","name":"Aluminio 1050 H24 03,00x1000x2000mm","esp":3.0,"largo":2000,"ancho":1000,"mat":"AL-1050-H24"},{"ref":"1050/04,00X1250X2500/H24","name":"Aluminio 1050 H24 04,00x1250x2500mm","esp":4.0,"largo":2500,"ancho":1250,"mat":"AL-1050-H24"},{"ref":"1050/05,00X1000X2000/H24","name":"Aluminio 1050 H24 5x1000x2000mm","esp":5.0,"largo":2000,"ancho":1000,"mat":"AL-1050-H24"},{"ref":"301LN/03,00X1500X3000/2B/CAF","name":"Inox 301LN 2B 3x1500x3000mm Cliente CAF","esp":3.0,"largo":3000,"ancho":1500,"mat":"INOX-301-LN"},{"ref":"301LN/04,00X1500X3000/2B/PVC/CAF","name":"Inox 301LN 2B Con Plástico 4x1500x3000mm Cliente CAF","esp":4.0,"largo":3000,"ancho":1500,"mat":"INOX-301-LN"},{"ref":"301LN/05,00X1500X3000/2B/CAF","name":"Inox 301LN 2B 5x1500x3000mm Cliente CAF","esp":5.0,"largo":3000,"ancho":1500,"mat":"INOX-301-LN"},{"ref":"304/00,50X1000X2000/2B","name":"Inox 304 2B 0,5x1000x2000mm","esp":0.5,"largo":2000,"ancho":1000,"mat":"INOX-304-2B"},{"ref":"304/00,50X1000X2000/BA","name":"Inox 304 Pulido Espejo 0,5x1000x2000mm","esp":0.5,"largo":2000,"ancho":1000,"mat":"INOX-304-BA"},{"ref":"304/00,50X1000X2100/2B","name":"Inox 304 2B 0,5x1000x2100mm","esp":0.5,"largo":2100,"ancho":1000,"mat":"INOX-304-2B"},{"ref":"304/00,50X1250X3000/2B","name":"Inox 304 2B 0,5x1250x3000mm","esp":0.5,"largo":3000,"ancho":1250,"mat":"INOX-304-2B"},{"ref":"304/00,70X1000X2000/2B","name":"Inox 304 2B 0,7x1000x2000mm","esp":0.7,"largo":2000,"ancho":1000,"mat":"INOX-304-2B"},{"ref":"304/00,80X1035X2200/PREL","name":"Inox 304 Prelacada 0,8x1035x2200mm","esp":0.8,"largo":2200,"ancho":1035,"mat":"INOX-304-PREL"},{"ref":"304/00,80X1250X1600/SATI","name":"Inox 304 Satinado 0,8x1250x1600mm","esp":0.8,"largo":1600,"ancho":1250,"mat":"INOX-304-SATI"},{"ref":"304/00,80X1250X2200/SATI","name":"Inox 304 Satinado 0,8x1250x2200mm","esp":0.8,"largo":2200,"ancho":1250,"mat":"INOX-304-SATI"},{"ref":"304/00,80X1250X2400/SATI","name":"Inox 304 Prelacada 0,8x1250x2400mm","esp":0.8,"largo":2400,"ancho":1250,"mat":"INOX-304-SATI"},{"ref":"304/00,80X1250X2500/ELEF","name":"Inox 304 Elefante 0,8x1250x2500mm","esp":0.8,"largo":2500,"ancho":1250,"mat":"INOX-304-ELEF"},{"ref":"304/00,80X1250X2500/SATI","name":"Inox 304 Satinada 0,8x1250x2500mm","esp":0.8,"largo":2500,"ancho":1250,"mat":"INOX-304-SATI"},{"ref":"304/00,80X1250X3000/SATI","name":"Inox 304 Satinada 0,8x1250x3000mm","esp":0.8,"largo":3000,"ancho":1250,"mat":"INOX-304-SATI"},{"ref":"304/00,80X1250X3250/SATI","name":"Inox 304 Satinada 0,8x1250x3250mm","esp":0.8,"largo":3250,"ancho":1250,"mat":"INOX-304-SATI"},{"ref":"304/01,00X1000X2000/2B","name":"Inox 304 2B 1x1000x2000mm","esp":1.0,"largo":2000,"ancho":1000,"mat":"INOX-304-2B"},{"ref":"304/01,00X1250X2500/LINO","name":"Inox 304 Lino 1x1250x2500mm","esp":1.0,"largo":2500,"ancho":1250,"mat":"INOX-304-LINO"},{"ref":"304/01,00X1250X3000/2B","name":"Inox 304 2B 1x1250x3000mm","esp":1.0,"largo":3000,"ancho":1250,"mat":"INOX-304-2B"},{"ref":"304/01,00X1500X3000/2B","name":"Inox 304 2B 1x1500x3000mm","esp":1.0,"largo":3000,"ancho":1500,"mat":"INOX-304-2B"},{"ref":"304/01,00X1500X3000/SATI","name":"Inox 304 Satinado 1,0x1500x3000mm","esp":1.0,"largo":3000,"ancho":1500,"mat":"INOX-304-SATI"},{"ref":"304/01,20X1250X2420/SATI","name":"Inox 304 Satinado 1,2x1250x2420mm","esp":1.2,"largo":2420,"ancho":1250,"mat":"INOX-304-SATI"},{"ref":"304/01,20X1250X2500/ELEF","name":"Inox 304 Elefante 1,2x1250x2500mm","esp":1.2,"largo":2500,"ancho":1250,"mat":"INOX-304-ELEF"},{"ref":"304/01,20X1360X2400/PREL","name":"Inox 304 Prelacada 1,2x1360x2400mm","esp":1.2,"largo":2400,"ancho":1360,"mat":"INOX-304-PREL"},{"ref":"304/01,20X1500X3000/SATI","name":"Inox 304 Satinado 1,2x1500x3000mm","esp":1.2,"largo":3000,"ancho":1500,"mat":"INOX-304-SATI"},{"ref":"304/01,50X1000X2000/SATI","name":"Inox 304 Satinado 1,5x1000x2000mm","esp":1.5,"largo":2000,"ancho":1000,"mat":"INOX-304-SATI"},{"ref":"304/01,50X1250X2500/AN5","name":"Inox 304 AN5 1,5x1250x2500mm","esp":1.5,"largo":2500,"ancho":1250,"mat":"INOX-304-AN5"},{"ref":"304/01,50X1250X2500/AN6","name":"Inox 304 AN6 1,5x1250x2500mm","esp":1.5,"largo":2500,"ancho":1250,"mat":"INOX-304-AN6"},{"ref":"304/01,50X1250X2500/ELEF/ORON","name":"Inox 304 Elefante 1,5x1250x2500mm Cliente Orona","esp":1.5,"largo":2500,"ancho":1250,"mat":"INOX-304-ELEF"},{"ref":"304/01,50X1250X2500/LINO/ORON","name":"Inox 304 Lino 1,5x1250x2500mm Cliente Orona","esp":1.5,"largo":2500,"ancho":1250,"mat":"INOX-304-LINO"},{"ref":"304/01,50X1500X2500/REPU","name":"Inox 304 Repujado 1,5x1500x2500mm","esp":1.5,"largo":2500,"ancho":1500,"mat":"INOX-304-REPU"},{"ref":"304/01,50X1500X3000/2B","name":"Inox 304 2B 1,5x1500x3000mm","esp":1.5,"largo":3000,"ancho":1500,"mat":"INOX-304-2B"},{"ref":"304/01,50X1500X3000/SATI","name":"Inox 304 Satinado 1,5x1500x3000mm","esp":1.5,"largo":3000,"ancho":1500,"mat":"INOX-304-SATI"},{"ref":"304/02,00X1000X2000/2B","name":"Inox 304 2B 2x1000x2000mm","esp":2.0,"largo":2000,"ancho":1000,"mat":"INOX-304-2B"},{"ref":"304/02,00X1250X2500/2B","name":"Inox 304 2B 2x1250x2500mm","esp":2.0,"largo":2500,"ancho":1250,"mat":"INOX-304-2B"},{"ref":"304/02,00X1250X2500/BA","name":"Inox 304 Pulido Espejo 2x1250x2500mm","esp":2.0,"largo":2500,"ancho":1250,"mat":"INOX-304-BA"},{"ref":"304/02,00X1250X3000/2B","name":"Inox 304 2B 2x1250x3000mm","esp":2.0,"largo":3000,"ancho":1250,"mat":"INOX-304-2B"},{"ref":"304/02,00X1250X3000/2B/PVC","name":"Inox 304 2B Con Plástico 2x1250x3000mm","esp":2.0,"largo":3000,"ancho":1250,"mat":"INOX-304-2B"},{"ref":"304/02,00X1250X3000/SATI","name":"Inox 304 Satinado 2x1250x3000mm","esp":2.0,"largo":3000,"ancho":1250,"mat":"INOX-304-SATI"},{"ref":"304/02,00X1500X3000/2B","name":"Inox 304 2B 2x1500x3000mm","esp":2.0,"largo":3000,"ancho":1500,"mat":"INOX-304-2B"},{"ref":"304/02,00X1500X3000/2B/PVC","name":"Inox 304 2B Con Plástico 2x1500x3000mm","esp":2.0,"largo":3000,"ancho":1500,"mat":"INOX-304-2B"},{"ref":"304/02,00X1500X3000/SATI","name":"Inox 304 Satinado 2x1500x3000mm","esp":2.0,"largo":3000,"ancho":1500,"mat":"INOX-304-SATI"},{"ref":"304/02,00X1500X4000/2B","name":"Inox 304 2B 2x1500x4000mm","esp":2.0,"largo":4000,"ancho":1500,"mat":"INOX-304-2B"},{"ref":"304/02,50X1000X2000/2B","name":"Inox 304 2B 2,5x1000x2000mm","esp":2.5,"largo":2000,"ancho":1000,"mat":"INOX-304-2B"},{"ref":"304/02,50X1500X3000/2B","name":"Inox 304 2B 2,5x1500x3000mm","esp":2.5,"largo":3000,"ancho":1500,"mat":"INOX-304-2B"},{"ref":"304/03,00X1000X2000/2B","name":"Inox 304 2B 3x1000x2000mm","esp":3.0,"largo":2000,"ancho":1000,"mat":"INOX-304-2B"},{"ref":"304/03,00X1000X2000/BA","name":"Inox 304 Pulido Espejo 3x1000x2000mm","esp":3.0,"largo":2000,"ancho":1000,"mat":"INOX-304-BA"},{"ref":"304/03,00X1250X2500/SATI","name":"Inox 304 Satinado 3x1250x2500mm","esp":3.0,"largo":2500,"ancho":1250,"mat":"INOX-304-SATI"},{"ref":"304/03,00X1500X3000/2B","name":"Inox 304 2B 3x1500x3000mm","esp":3.0,"largo":3000,"ancho":1500,"mat":"INOX-304-2B"},{"ref":"304/03,00X1500X3000/SATI","name":"Inox 304 Satinado 3x1500x3000mm","esp":3.0,"largo":3000,"ancho":1500,"mat":"INOX-304-SATI"},{"ref":"304/03,50X1860X0620/2B/BELL","name":"Inox 304 2B 3,50x620x1860mm Cliente Bellota","esp":3.5,"largo":1860,"ancho":620,"mat":"INOX-304-2B"},{"ref":"304/04,00X1000X2000/LC","name":"Inox 304 Laminado en Caliente 4x1000x2000mm","esp":4.0,"largo":2000,"ancho":1000,"mat":"INOX-304-LC"},{"ref":"304/04,00X1500X3000/2B/PVC","name":"Inox 304 2B Con plástico 4x1500x3000mm","esp":4.0,"largo":3000,"ancho":1500,"mat":"INOX-304-2B"},{"ref":"304/04,00X1500X3000/LC","name":"Inox 304 Laminado en Caliente 4x1500x3000mm","esp":4.0,"largo":3000,"ancho":1500,"mat":"INOX-304-LC"},{"ref":"304/04,00X1500X3000/LC/ZUBI","name":"Inox 304 Laminado en caliente 4x1500x3000mm Cliente Zubi","esp":4.0,"largo":3000,"ancho":1500,"mat":"INOX-304-LC"},{"ref":"304/05,00X1000X2000/2B","name":"Inox 304 2B 5x1000x2000mm","esp":5.0,"largo":2000,"ancho":1000,"mat":"INOX-304-2B"},{"ref":"304/05,00X1000X2000/LC","name":"Inox 304 Laminado en Caliente 5x1000x2000mm","esp":5.0,"largo":2000,"ancho":1000,"mat":"INOX-304-LC"},{"ref":"304/05,00X1000X2000/SATI","name":"Inox 304 Satinado 2 caras 5x1000x2000mm","esp":5.0,"largo":2000,"ancho":1000,"mat":"INOX-304-SATI"},{"ref":"304/05,00X1500X3000/2B","name":"Inox 304 2B 5x1500x3000mm","esp":5.0,"largo":3000,"ancho":1500,"mat":"INOX-304-2B"},{"ref":"304/05,00X1500X3000/LC","name":"Inox 304 Laminado en Caliente 5x1500x3000mm","esp":5.0,"largo":3000,"ancho":1500,"mat":"INOX-304-LC"},{"ref":"304/05,00X1500X3000/LC/ZUBI","name":"Inox 304 Laminado en caliente 5x1500x3000mm Cliente Zubi","esp":5.0,"largo":3000,"ancho":1500,"mat":"INOX-304-LC"},{"ref":"304/06,00X1500X3000/LC","name":"Inox 304 Laminado en Caliente 6x1500x3000mm","esp":6.0,"largo":3000,"ancho":1500,"mat":"INOX-304-LC"},{"ref":"304/06,00X1500X3000/LC/ZUBI","name":"Inox 304 Laminado en Caliente 6x1500x3000 Cliente Zubi","esp":6.0,"largo":3000,"ancho":1500,"mat":"INOX-304-LC"},{"ref":"304/08,00X1000X2000/LC","name":"Inox 304 Laminado en Caliente 8x1000x2000mm","esp":8.0,"largo":2000,"ancho":1000,"mat":"INOX-304-LC"},{"ref":"304/08,00X1500X3000/LC","name":"Inox 304 Laminado en Caliente 8x1500x3000mm","esp":8.0,"largo":3000,"ancho":1500,"mat":"INOX-304-LC"},{"ref":"304/08,00X1500X3000/LC/ZUBI","name":"Inox 304 Laminado en Caliente 8x1500x3000 Cliente Zubi","esp":8.0,"largo":3000,"ancho":1500,"mat":"INOX-304-LC"},{"ref":"304/10,00X1000X2000/LC","name":"Inox 304 Laminado en Caliente 10x1000x2000mm","esp":10.0,"largo":2000,"ancho":1000,"mat":"INOX-304-LC"},{"ref":"304/10,00X1500X3000/LC","name":"Inox 304 Laminado en Caliente 10x1500x3000","esp":10.0,"largo":3000,"ancho":1500,"mat":"INOX-304-LC"},{"ref":"304/10,00X1500X3000/LC/STUA","name":"Inox 304 Laminado en Caliente 10x1500x3000 Cliente Stua","esp":10.0,"largo":3000,"ancho":1500,"mat":"INOX-304-LC"},{"ref":"304/10,00X1500X3000/LC/ZUBI","name":"Inox 304 Laminado en Caliente 10x1500x3000 Cliente Zubi","esp":10.0,"largo":3000,"ancho":1500,"mat":"INOX-304-LC"},{"ref":"304/12,00X1500X3000/LC","name":"Inox 304 Laminado en Caliente 12x1500x3000mm","esp":12.0,"largo":3000,"ancho":1500,"mat":"INOX-304-LC"},{"ref":"304/12,00X1500X3000/LC/ZUBI","name":"Inox 304 Laminado en caliente 12x1500x3000mm Cliente Zubi","esp":12.0,"largo":3000,"ancho":1500,"mat":"INOX-304-LC"},{"ref":"304/15,00X1500X3000/LC","name":"Inox 304 Laminado en Caliente 15x1500x3000mm","esp":15.0,"largo":3000,"ancho":1500,"mat":"INOX-304-LC"},{"ref":"316/01,00X1000X2000/2B","name":"Inox 316 2B 1x1000x2000mm","esp":1.0,"largo":2000,"ancho":1000,"mat":"INOX-316-2B"},{"ref":"316/01,00X1250X3000/2B","name":"Inox 316 2B 1x1250x3000mm","esp":1.0,"largo":3000,"ancho":1250,"mat":"INOX-316-2B"},{"ref":"316/01,50X1000X2000/2B","name":"Inox 316 2B 1,5x1000x2000mm","esp":1.5,"largo":2000,"ancho":1000,"mat":"INOX-316-2B"},{"ref":"316/01,50X1250X2500/2B","name":"Inox 316 2B 1,5x1250x2500mm","esp":1.5,"largo":2500,"ancho":1250,"mat":"INOX-316-2B"},{"ref":"316/01,50X1250X2500/SATI","name":"Inox 316 Satinado 1,5x1250x2500mm","esp":1.5,"largo":2500,"ancho":1250,"mat":"INOX-316-SATI"},{"ref":"316/01,50X1250X3000/2B","name":"Inox 316 2B 1,5x1250x3000mm","esp":1.5,"largo":3000,"ancho":1250,"mat":"INOX-316-2B"},{"ref":"316/01,50X1250X3000/SATI","name":"Inox 316 Satinado 1,5x1250x3000mm","esp":1.5,"largo":3000,"ancho":1250,"mat":"INOX-316-SATI"},{"ref":"316/02,00X1000X2000/2B","name":"Inox 316 2B 2x1000x2000mm","esp":2.0,"largo":2000,"ancho":1000,"mat":"INOX-316-2B"},{"ref":"316/03,00X1500X3000/LC","name":"Inox 316 Laminado en Caliente 3x1500x3000mm","esp":3.0,"largo":3000,"ancho":1500,"mat":"INOX-316-LC"},{"ref":"316/04,00X1500X3000/LC","name":"Inox 316 Laminado en Caliente 4x1500x3000mm","esp":4.0,"largo":3000,"ancho":1500,"mat":"INOX-316-LC"},{"ref":"316/05,00X1500X3000/LC","name":"Inox 316 Laminado en Caliente 5x1500x3000mm","esp":5.0,"largo":3000,"ancho":1500,"mat":"INOX-316-LC"},{"ref":"316/05,00X1500X3000/LC/ZUBI","name":"Inox 316 Laminado en Caliente 5x1500x3000mm Cliente Zubi","esp":5.0,"largo":3000,"ancho":1500,"mat":"INOX-316-LC"},{"ref":"316/06,00X1000X2000/LC","name":"Inox 316 Laminado en Caliente 6x1000x2000mm","esp":6.0,"largo":2000,"ancho":1000,"mat":"INOX-316-LC"},{"ref":"316/06,00X1500X3000/LC","name":"Inox 316 Laminado en Caliente 6x1500x3000mm","esp":6.0,"largo":3000,"ancho":1500,"mat":"INOX-316-LC"},{"ref":"316/06,00X1500X3000/LC/ZUBI","name":"Inox 306 Laminado en caliente 6x1500x3000mm Cliente Zubi","esp":6.0,"largo":3000,"ancho":1500,"mat":"INOX-316-LC"},{"ref":"316/08,00X1500X3000/LC","name":"Inox 316 Laminado en Caliente 8x1500x3000mm","esp":8.0,"largo":3000,"ancho":1500,"mat":"INOX-316-LC"},{"ref":"316/08,00X1500X3000/LC/ZUBI","name":"Inox 316 Laminado en caliente 8x1500x3000mm Cliente Zubi","esp":8.0,"largo":3000,"ancho":1500,"mat":"INOX-316-LC"},{"ref":"316/10,00X1250X2500/LC","name":"Inox 316 Laminado en Caliente 10x1250x2500mm","esp":10.0,"largo":2500,"ancho":1250,"mat":"INOX-316-LC"},{"ref":"316/10,00X1500X3000/LC","name":"Inox 316 Laminado en Caliente 10x1500x3000mm","esp":10.0,"largo":3000,"ancho":1500,"mat":"INOX-316-LC"},{"ref":"316/10,00X1500X3000/LC/STUA","name":"Inox 316 Laminado en Caliente 10x1500x3000 Cliente Stua","esp":10.0,"largo":3000,"ancho":1500,"mat":"INOX-316-LC"},{"ref":"316/10,00X1500X3000/LC/ZUBI","name":"Inox 316 Laminado en caliente 10x1500x3000mm Cliente Zubi","esp":10.0,"largo":3000,"ancho":1500,"mat":"INOX-316-LC"},{"ref":"316/12,00X1000X2000/LC","name":"Inox 316 Laminado en Caliente 12x1000x2000mm","esp":12.0,"largo":2000,"ancho":1000,"mat":"INOX-316-LC"},{"ref":"316/12,00X1500X3000/LC","name":"Inox 316 Laminado en Caliente 12x1500x3000mm","esp":12.0,"largo":3000,"ancho":1500,"mat":"INOX-316-LC"},{"ref":"316/12,00X1500X3000/LC/ZUBI","name":"Inox 316 Laminado en Caliente 12x1500x3000mm Cliente Zubi","esp":12.0,"largo":3000,"ancho":1500,"mat":"INOX-316-LC"},{"ref":"430/01,00X0970X2300/SATI","name":"Inox 430 Satinado 1x0970x2300mm","esp":1.0,"largo":2300,"ancho":970,"mat":"INOX-430"},{"ref":"430/01,00X1000X2300/SATI","name":"Inox 430 Satinado 1x1000x2300mm","esp":1.0,"largo":2300,"ancho":1000,"mat":"INOX-430"},{"ref":"430/01,00X1250X2150/SATI","name":"Inox 430 Satinado 1x1250x2150mm","esp":1.0,"largo":2150,"ancho":1250,"mat":"INOX-430-SATI"},{"ref":"430/01,00X1250X2210/SATI","name":"Inox 430 Satinado 1x1250x2210mm","esp":1.0,"largo":2210,"ancho":1250,"mat":"INOX-430-SATI"},{"ref":"430/01,00X1250X2300/SATI","name":"Inox 430 Satinado 1x1250x2300mm","esp":1.0,"largo":2300,"ancho":1250,"mat":"INOX-430"},{"ref":"430/01,00X1250X2500/SATI","name":"Inox 430 Satinado 1x1250x2500mm","esp":1.0,"largo":2500,"ancho":1250,"mat":"INOX-430"},{"ref":"430/01,00X1250X3000/BA","name":"Inox 430 BA 1x1250x3000mm","esp":1.0,"largo":3000,"ancho":1250,"mat":"INOX-430-BA"},{"ref":"430/01,00X1250X3000/BA/PVC","name":"Inox 430 BA Con Plástico 1x1250x3000mm","esp":1.0,"largo":3000,"ancho":1250,"mat":"INOX-430-BA"},{"ref":"430/01,00X1500X2300/SATI","name":"Inox 430 Satinado 1x1500x2300mm","esp":1.0,"largo":2300,"ancho":1500,"mat":"INOX-430"},{"ref":"430/01,00X1500X2500/SATI","name":"Inox 430 Satinado 1x1500x2500mm","esp":1.0,"largo":2500,"ancho":1500,"mat":"INOX-430"},{"ref":"430/01,00X1500X3000/SATI","name":"Inox 430 Satinado 1x1500x3000mm","esp":1.0,"largo":3000,"ancho":1500,"mat":"INOX-430"},{"ref":"430/01,20X1250X2300/SATI","name":"Inox 430 Satinado 1,2x1250x2300mm","esp":1.2,"largo":2300,"ancho":1250,"mat":"INOX-430-SATI"},{"ref":"430/01,50X1000X2000/BA","name":"Inox 430 BA 1,5x1000x2000mm","esp":1.5,"largo":2000,"ancho":1000,"mat":"INOX-430-BA"},{"ref":"430/01,50X1250X3000/BA","name":"Inox 430 BA 1,5x1250x3000mm","esp":1.5,"largo":3000,"ancho":1250,"mat":"INOX-430-BA"},{"ref":"430/01,50X1500X3000/BA","name":"Inox 430 BA 1,5x1500x3000mm","esp":1.5,"largo":3000,"ancho":1500,"mat":"INOX-430-BA"},{"ref":"430/02,00X1000X2000/SATI","name":"Inox 430 Satinado 2x1000x2000mm","esp":2.0,"largo":2000,"ancho":1000,"mat":"INOX-430-SATI"},{"ref":"430/02,00X1250X2500/2B","name":"Inox 430 2B 2x1250x2500mm","esp":2.0,"largo":2500,"ancho":1250,"mat":"INOX-430-2B"},{"ref":"430/02,00X1250X3000/2B","name":"Inox 430 2B 2x1250x3000mm","esp":2.0,"largo":3000,"ancho":1250,"mat":"INOX-430-2B"},{"ref":"430/02,00X1500X3000/SATI","name":"Inox 430 Satinado 2x1500x3000mm","esp":2.0,"largo":3000,"ancho":1500,"mat":"INOX-430-SATI"},{"ref":"430/03,00X1250X2000/2B","name":"Inox 430 2B 3x1250x2000mm","esp":3.0,"largo":2000,"ancho":1250,"mat":"INOX-430-2B"},{"ref":"430/03,00X1250X3000/LC","name":"Inox 430 LC 3x1250x3000mm","esp":3.0,"largo":3000,"ancho":1250,"mat":"INOX-430-LC"},{"ref":"430/03,00X1250X3000/SATI","name":"Inox 430 Satinado 3x1250x3000mm","esp":3.0,"largo":3000,"ancho":1250,"mat":"INOX-430-SATI"},{"ref":"441/00,80X1250X2200/SATI","name":"Inox 441 Satinado 0,8x1250x2200","esp":0.8,"largo":2200,"ancho":1250,"mat":"INOX-441-SATI"},{"ref":"441/01,00X0970X2300/SATI","name":"Inox 441 Satinado 1x0970x2300mm","esp":1.0,"largo":2300,"ancho":970,"mat":"INOX-441"},{"ref":"441/01,00X1000X2300/SATI","name":"Inox 441 Satinado 1x1000x2300mm","esp":1.0,"largo":2300,"ancho":1000,"mat":"INOX-441"},{"ref":"441/01,00X1000X2500/SATI","name":"Inox 441 Satinado 1x1000x2500mm","esp":1.0,"largo":2500,"ancho":1000,"mat":"INOX-441-SATI"},{"ref":"441/01,00X1250X2150/SATI","name":"Inox 441 Satinado 1x1250x2150mm","esp":1.0,"largo":2150,"ancho":1250,"mat":"INOX-441-SATI"},{"ref":"441/01,00X1250X2210/SATI","name":"Inox 441 Satinado 1x1250x2210mm","esp":1.0,"largo":2210,"ancho":1250,"mat":"INOX-441"},{"ref":"441/01,00X1250X2300/SATI","name":"Inox 441 Satinado 1x1250x2300mm","esp":1.0,"largo":2300,"ancho":1250,"mat":"INOX-441"},{"ref":"441/01,00X1250X2300/SATI/ORON","name":"Inox 441 Satinado 1x1250x2300mm Cliente Orona","esp":1.0,"largo":2300,"ancho":1250,"mat":"INOX-441"},{"ref":"441/01,00X1250X2500/ELEF","name":"Inox 441 Elefante 1x1250x2500mm","esp":1.0,"largo":2500,"ancho":1250,"mat":"INOX-441-ELEF"},{"ref":"441/01,00X1250X2500/ELEF/ORON","name":"Inox 441 Elefante 1x1250x2500mm Cliente Orona","esp":1.0,"largo":2500,"ancho":1250,"mat":"INOX-441-ELEF"},{"ref":"441/01,00X1250X2500/LINO/ORON","name":"Inox 441 Lino 1,0x1250x2500mm Cliente Orona","esp":1.0,"largo":2500,"ancho":1250,"mat":"INOX-441-LINO"},{"ref":"441/01,00X1250X2500/SATI","name":"Inox 441 Satinado 1x1250x2500mm","esp":1.0,"largo":2500,"ancho":1250,"mat":"INOX-441"},{"ref":"441/01,00X1250X2700/SATI","name":"Inox 441 Satinado 1x1250x2700mm","esp":1.0,"largo":2700,"ancho":1250,"mat":"INOX-441"},{"ref":"441/01,00X1500X2300/SATI","name":"Inox 441 Satinado 1x1500x2300mm","esp":1.0,"largo":2300,"ancho":1500,"mat":"INOX-441"},{"ref":"441/01,00X1500X2500/SATI","name":"Inox 441 Satinado 1x1500x2500mm","esp":1.0,"largo":2500,"ancho":1500,"mat":"INOX-441"},{"ref":"441/01,00X1500X2700/SATI","name":"Inox 441 Satinado 1x1500x2700mm","esp":1.0,"largo":2700,"ancho":1500,"mat":"INOX-441-SATI"},{"ref":"441/01,20X1000X2300/SATI","name":"Inox 441 Satinado 1,2x1000x2300","esp":1.2,"largo":2300,"ancho":1000,"mat":"INOX-441-SATI"},{"ref":"441/01,20X1000X2500/SATI","name":"Inox 441 Satinado 1,2x1000x2500","esp":1.2,"largo":2500,"ancho":1000,"mat":"INOX-441-SATI"},{"ref":"441/01,20X1000X2600/SATI","name":"Inox 441 Satinado 1,2x1000x2600","esp":1.2,"largo":2600,"ancho":1000,"mat":"INOX-441-SATI"},{"ref":"441/01,20X1000X2600/SATI/AGUI","name":"Inox 441 Satinado 1,2x1000x2600mm Cliente Agui","esp":1.2,"largo":2600,"ancho":1000,"mat":"INOX-441-SATI"},{"ref":"441/01,20X1250X2420/SATI","name":"Inox 441 Satinado 1,2x1250x2420","esp":1.2,"largo":2420,"ancho":1250,"mat":"INOX-441-SATI"},{"ref":"441/01,20X1500X1750/SATI","name":"Inox 441 Satinado 1,2x1500x1750","esp":1.2,"largo":1750,"ancho":1500,"mat":"INOX-441-SATI"},{"ref":"441/01,50X1250X2500/LINO/ORON","name":"Inox 441 Lino 1,5x1250x2500mm Cliente Orona","esp":1.5,"largo":2500,"ancho":1250,"mat":"INOX-441-LINO"},{"ref":"441/01,50X1250X2500/SATI","name":"Inox 441 Satinado 1,5x1250x2500mm","esp":1.5,"largo":2500,"ancho":1250,"mat":"INOX-441-SATI"},{"ref":"5754/00,50X1000X2000/H111","name":"Aluminio 5754 H111 0,5x1000x2000mm","esp":0.5,"largo":2000,"ancho":1000,"mat":"AL-5754-H111"},{"ref":"5754/00,50X1250X2500/H111","name":"Aluminio 5754 H111 0,5x1250x2500mm","esp":0.5,"largo":2500,"ancho":1250,"mat":"AL-5754-H111"},{"ref":"5754/01,00X1000X2000/ANOD","name":"Aluminio 5754 Anodizada 1x1000x2000mm","esp":1.0,"largo":2000,"ancho":1000,"mat":"AL-5754-ANOD"},{"ref":"5754/01,00X1000X2000/H24","name":"Aluminio 5754 H24 1x1000x2000mm","esp":1.0,"largo":2000,"ancho":1000,"mat":"AL-1050-H24"},{"ref":"5754/01,00X1500X3000/H111","name":"Aluminio 5754 H111 1x1500x3000mm","esp":1.0,"largo":3000,"ancho":1500,"mat":"AL-5754-H111"},{"ref":"5754/01,20X1000X2000/H111","name":"Aluminio 5754 H111 1,2x1000x2000mm","esp":1.2,"largo":2000,"ancho":1000,"mat":"AL-5754-H111"},{"ref":"5754/01,50X1000X2000/ANOD","name":"Aluminio 5754 Anodizada 1,5x1000x2000mm","esp":1.5,"largo":2000,"ancho":1000,"mat":"AL-5754-ANOD"},{"ref":"5754/01,50X1000X2000/H111","name":"Aluminio 5754 H111 1,5x1000x2000mm","esp":1.5,"largo":2000,"ancho":1000,"mat":"AL-5754-H111"},{"ref":"5754/01,50X1250X2500/ANOD","name":"Aluminio 5754 Anodizada 1,5x1250x2500mm","esp":1.5,"largo":2500,"ancho":1250,"mat":"AL-5754-ANOD"},{"ref":"5754/01,50X1250X2500/H111","name":"Aluminio 5754 H111 1,5x1250x2500mm","esp":1.5,"largo":2500,"ancho":1250,"mat":"AL-5754-H111"},{"ref":"5754/01,50X1500X3000/ANOD","name":"Aluminio 5754 Anodizada 1,5x1500x3000mm","esp":1.5,"largo":3000,"ancho":1500,"mat":"AL-5754-ANOD"},{"ref":"5754/01,50X1500X3000/H111","name":"Aluminio 5754 H111 1,5x1500x3000mm","esp":1.5,"largo":3000,"ancho":1500,"mat":"AL-5754-H111"},{"ref":"5754/02,00X1000X2000/ANOD","name":"Aluminio 5754 Anodizada 2x1000x2000mm","esp":2.0,"largo":2000,"ancho":1000,"mat":"AL-5754-ANOD"},{"ref":"5754/02,00X1000X2000/H111","name":"Aluminio 5754 H111 2x1000x2000mm","esp":2.0,"largo":2000,"ancho":1000,"mat":"AL-5754-H111"},{"ref":"5754/02,00X1250X2500/DAME/2/4","name":"Aluminio 5754 Damero 2/4x1250x2500mm","esp":3.0,"largo":2500,"ancho":1250,"mat":"AL-5754-DAME"},{"ref":"5754/02,00X1250X2500/H22","name":"Aluminio 5754 H22 2x1250x2500mm","esp":2.0,"largo":2500,"ancho":1250,"mat":"AL-5754-H22"},{"ref":"5754/02,00X1500X3000/DAME/2/4","name":"Aluminio 5754 Damero 2/4x1500x3000mm","esp":3.0,"largo":3000,"ancho":1500,"mat":"AL-5754-DAME"},{"ref":"5754/02,00X1500X3000/H111","name":"Aluminio 5754 H111 2x1500x3000mm","esp":2.0,"largo":3000,"ancho":1500,"mat":"AL-5754-H111"},{"ref":"5754/02,00X1500X3000/H22","name":"Aluminio 5754 H22 2x1500x3000mm","esp":2.0,"largo":3000,"ancho":1500,"mat":"AL-5754-H22"},{"ref":"5754/02,50X1000X2000/H111","name":"Aluminio 5754 H111 2,5x1000x2000mm","esp":2.5,"largo":2000,"ancho":1000,"mat":"AL-5754-H111"},{"ref":"5754/02,50X1000X2000/H111/PVC","name":"Aluminio 5754 H111 con PVC 2,5x1000x2000mm","esp":2.5,"largo":2000,"ancho":1000,"mat":"AL-5754-H111"},{"ref":"5754/03,00X1000X2000/ANOD","name":"Aluminio 5754 Anodizada 3x1000x2000mm","esp":3.0,"largo":2000,"ancho":1000,"mat":"AL-5754-ANOD"},{"ref":"5754/03,00X1000X2000/H111","name":"Aluminio 5754 H111 3x1000x2000mm","esp":3.0,"largo":2000,"ancho":1000,"mat":"AL-5754-H111"},{"ref":"5754/03,00X1250X2500/ANOD","name":"Aluminio 5754 Anodizada 3x1250x2500mm","esp":3.0,"largo":2500,"ancho":1250,"mat":"AL-5754-ANOD"},{"ref":"5754/03,00X1250X2500/DAME/3/5","name":"Aluminio 5754 Damero 3/5 3X1250X2500mm","esp":4.0,"largo":2500,"ancho":1250,"mat":"AL-5754-DAME"},{"ref":"5754/03,00X1250X2500/H22","name":"Aluminio 5754 H22 3x1250x2500mm","esp":3.0,"largo":2500,"ancho":1250,"mat":"AL-5754-H22"},{"ref":"5754/03,00X1500X3000/ANOD","name":"Aluminio 5754 Anodizada 3x1500x3000mm","esp":3.0,"largo":3000,"ancho":1500,"mat":"AL-5754-ANOD"},{"ref":"5754/03,00X1500X3000/DAME/3/5","name":"Aluminio 5754 Damero 3/5x1500x3000mm","esp":4.0,"largo":3000,"ancho":1500,"mat":"AL-5754-DAME"},{"ref":"5754/03,00X1500X3000/H111","name":"Aluminio 5754 H111 3x1500x3000mm","esp":3.0,"largo":3000,"ancho":1500,"mat":"AL-5754-H111"},{"ref":"5754/03,00X1500X3000/H111/PVC","name":"Aluminio 5754 H111 con PVC 3x1500x3000mm","esp":3.0,"largo":3000,"ancho":1500,"mat":"AL-5754-H111"},{"ref":"5754/03,00X1500X3000/H22","name":"Aluminio 5754 H22 3x1500x3000mm","esp":3.0,"largo":3000,"ancho":1500,"mat":"AL-5754-H22"},{"ref":"5754/03,00X1500X3000/H24","name":"Aluminio 5754 H111 3x1500x3000mm","esp":3.0,"largo":3000,"ancho":1500,"mat":"AL-1050-H24"},{"ref":"5754/03,00X1500X3000/H24/CAF","name":"Aluminio 5754 H24 3x1500x3000mm Cliente CAF","esp":3.0,"largo":3000,"ancho":1500,"mat":"AL-5754-H24"},{"ref":"5754/04,00X1000X2000/H111","name":"Aluminio 5754 H111 4x1000x2000mm","esp":4.0,"largo":2000,"ancho":1000,"mat":"AL-5754-H111"},{"ref":"5754/04,00X1250X2500/DAME/4/6","name":"Aluminio 5754 Damero 4/6x1250x2500mm","esp":5.0,"largo":2500,"ancho":1250,"mat":"AL-5754-DAME"},{"ref":"5754/04,00X1250X2500/H111","name":"Aluminio 5754 H111 4x1250x2500mm","esp":4.0,"largo":2500,"ancho":1250,"mat":"AL-5754-H111"},{"ref":"5754/04,00X1250X2500/H24","name":"Aluminio 5754 H24 4x1250x2500mm","esp":4.0,"largo":2500,"ancho":1250,"mat":"AL-1050-H24"},{"ref":"5754/04,00X1500X3000/DAME/4/6","name":"Aluminio 5754 Damero 4/6x1500x3000mm","esp":5.0,"largo":3000,"ancho":1500,"mat":"AL-5754-DAME"},{"ref":"5754/04,00X1500X3000/H111","name":"Aluminio 5754 H111  4x1500x3000mm","esp":4.0,"largo":3000,"ancho":1500,"mat":"AL-5754-H111"},{"ref":"5754/04,00X1500X3000/H111/PVC","name":"Aluminio 5754 H111 con PVC 4x1500x3000mm","esp":4.0,"largo":3000,"ancho":1500,"mat":"AL-5754-H111"},{"ref":"5754/04,00X1500X3000/H22","name":"Aluminio 5754 H22 4x1500x3000mm","esp":4.0,"largo":3000,"ancho":1500,"mat":"AL-5754-H22"},{"ref":"5754/04,00X1500X3000/H24","name":"Aluminio 5754 H111 4x1500x3000mm","esp":4.0,"largo":3000,"ancho":1500,"mat":"AL-1050-H24"},{"ref":"5754/04,00X1500X3000/H24/CAF","name":"Aluminio 5754 H24 4x1500x3000mm Cliente CAF","esp":4.0,"largo":3000,"ancho":1500,"mat":"AL-5754-H24"},{"ref":"5754/05,00X1000X2000/H111","name":"Aluminio 5754 H111 5x1000x2000mm","esp":5.0,"largo":2000,"ancho":1000,"mat":"AL-5754-H111"},{"ref":"5754/05,00X1250X2500/DAME/5/7","name":"Aluminio 5754 Damero 5/7x1250x2500mm","esp":6.0,"largo":2500,"ancho":1250,"mat":"AL-5754-DAME"},{"ref":"5754/05,00X1250X2500/H111","name":"Aluminio 5754 H111 5x1250x2500mm","esp":5.0,"largo":2500,"ancho":1250,"mat":"AL-5754-H111"},{"ref":"5754/05,00X1500X3000/H111","name":"Aluminio 5754 H111 5x1500x3000mm","esp":5.0,"largo":3000,"ancho":1500,"mat":"AL-5754-H111"},{"ref":"5754/06,00X1500X3000/H111","name":"Aluminio 5754 H111 6x1500x3000mm","esp":6.0,"largo":3000,"ancho":1500,"mat":"AL-5754-H111"},{"ref":"5754/06,00X1500X3000/H24","name":"Aluminio 5754 H111 6x1500x3000mm","esp":6.0,"largo":3000,"ancho":1500,"mat":"AL-1050-H24"},{"ref":"5754/06,00X1500X3000/H24/CAF","name":"Aluminio 5754 H24 6x1500x3000mm Cliente CAF","esp":6.0,"largo":3000,"ancho":1500,"mat":"AL-5754-H24"},{"ref":"5754/08,00X1000X2000/H111","name":"Aluminio 5754 H111 8x1000x2000mm","esp":8.0,"largo":2000,"ancho":1000,"mat":"AL-5754-H111"},{"ref":"5754/08,00X1250X2200/H24/CAF","name":"Aluminio 5754 H111 8x1250x2200mm","esp":8.0,"largo":2200,"ancho":1250,"mat":"AL-5754-H24"},{"ref":"5754/10,00X1000X2000/H111","name":"Aluminio 5754 H111 10x1000x2000mm","esp":10.0,"largo":2000,"ancho":1000,"mat":"AL-5754-H111"},{"ref":"5754/10,00X1500X3000/H111","name":"Aluminio 5754 H111 10x1500x3000mm","esp":10.0,"largo":3000,"ancho":1500,"mat":"AL-5754-H111"},{"ref":"5754/12,00X1000X2000/H111","name":"Aluminio 5754 H111 12x1000x2000mm","esp":12.0,"largo":2000,"ancho":1000,"mat":"AL-5754-H111"},{"ref":"5754/12,00X1500X3000/H111","name":"Aluminio 5754 H111 12x1500x3000mm","esp":12.0,"largo":3000,"ancho":1500,"mat":"AL-5754-H111"},{"ref":"5754/15,00X1500X3000/H24/CAF","name":"Aluminio 5754 H24 15x1500x3000mm Cliente CAF","esp":15.0,"largo":3000,"ancho":1500,"mat":"AL-5754-H24"},{"ref":"6082/03,00X1500X3000/T6","name":"Aluminio 6082 T6 3x1500x3000mm","esp":3.0,"largo":3000,"ancho":1500,"mat":"AL-6082-T6"},{"ref":"DC01/00,70X1006X2500/EUN","name":"DC01 Blanca 0,7x1006x2500mm Cliente EUN","esp":0.7,"largo":2500,"ancho":1006,"mat":"DC01"},{"ref":"DC01/00,70X1250X3000","name":"DC01 Blanca 0,7x1250x3000mm","esp":0.7,"largo":3000,"ancho":1250,"mat":"DC01"},{"ref":"DC01/00,80X1000X2000","name":"DC01 Blanca 0,8x1000x2000mm","esp":0.8,"largo":2000,"ancho":1000,"mat":"DC01"},{"ref":"DC01/00,80X1000X2510","name":"DC01 Blanca 0,8x1000x2510mm","esp":0.8,"largo":2510,"ancho":1000,"mat":"DC01"},{"ref":"DC01/00,80X1250X2500","name":"DC01 Blanca 0,8x1250x2500mm","esp":0.8,"largo":2500,"ancho":1250,"mat":"DC01"},{"ref":"DC01/00,80X1500X3000","name":"DC01 Blanca 0,8x1500x3000mm","esp":0.8,"largo":3000,"ancho":1500,"mat":"DC01"},{"ref":"DC01/01,00X1000X2300","name":"DC01 Blanca 1x1000x2300mm","esp":1.0,"largo":2300,"ancho":1000,"mat":"DC01"},{"ref":"DC01/01,00X1000X3000","name":"DC01 Blanca 1x1000x3000mm","esp":1.0,"largo":3000,"ancho":1000,"mat":"DC01"},{"ref":"DC01/01,00X1250X2210","name":"DC01 Blanca 1x1250x2210mm","esp":1.0,"largo":2210,"ancho":1250,"mat":"DC01"},{"ref":"DC01/01,00X1250X2300","name":"DC01 Blanca 1x1250x2300mm","esp":1.0,"largo":2300,"ancho":1250,"mat":"DC01"},{"ref":"DC01/01,00X1250X2500","name":"DC01 Blanca 1x1250x2500mm","esp":1.0,"largo":2500,"ancho":1250,"mat":"DC01"},{"ref":"DC01/01,00X1500X2100","name":"DC01 Blanca 1x1500x2100mm","esp":1.0,"largo":2100,"ancho":1500,"mat":"DC01"},{"ref":"DC01/01,00X1500X2300","name":"DC01 Blanca 1x1500x2300mm","esp":1.0,"largo":2300,"ancho":1500,"mat":"DC01"},{"ref":"DC01/01,00X1500X2500","name":"DC01 Blanca 1x1500x2500mm","esp":1.0,"largo":2500,"ancho":1500,"mat":"DC01"},{"ref":"DC01/01,00X1500X2500/EZ","name":"DC01 Blanca Electrocincada 1x1500x2500mm","esp":1.0,"largo":2500,"ancho":1500,"mat":"DC01-ELEC"},{"ref":"DC01/01,00X1500X3000","name":"DC01 Blanca 1x1500x3000mm","esp":1.0,"largo":3000,"ancho":1500,"mat":"DC01"},{"ref":"DC01/01,10X1440X2000","name":"DC01 Blanca 1,1x1440x2000mm","esp":1.1,"largo":2000,"ancho":1440,"mat":"DC01"},{"ref":"DC01/01,10X1440X2600","name":"DC01 Blanca 1,1x1440x2600mm","esp":1.1,"largo":2600,"ancho":1440,"mat":"DC01"},{"ref":"DC01/01,10X1440X2750","name":"DC01 Blanca 1,1x1440x2750mm","esp":1.1,"largo":2750,"ancho":1440,"mat":"DC01"},{"ref":"DC01/01,10X1500X1700","name":"DC01 Blanca 1,1x1500x1700mm","esp":1.1,"largo":1700,"ancho":1500,"mat":"DC01"},{"ref":"DC01/01,10X1500X2000","name":"DC01 Blanca 1,1x1500x2000mm","esp":1.1,"largo":2000,"ancho":1500,"mat":"DC01"},{"ref":"DC01/01,10X1500X2100","name":"DC01 Blanca 1,1x1500x2100mm","esp":1.1,"largo":2100,"ancho":1500,"mat":"DC01"},{"ref":"DC01/01,10X1500X2600","name":"DC01 Blanca 1,1x1500x2600mm","esp":1.1,"largo":2600,"ancho":1500,"mat":"DC01"},{"ref":"DC01/01,10X1500X2750","name":"DC01 Blanca 1,1x1500x2750mm","esp":1.1,"largo":2750,"ancho":1500,"mat":"DC01"},{"ref":"DC01/01,10X1500X3000","name":"DC01 Blanca 1,1x1500x3000mm","esp":1.1,"largo":3000,"ancho":1500,"mat":"DC01"},{"ref":"DC01/01,20X1000X2000","name":"DC01 Blanca 1,2x1000x2000mm","esp":1.0,"largo":2000,"ancho":1000,"mat":"DC01"},{"ref":"DC01/01,50X1000X2000","name":"DC01 Blanca 1,5x1000x2000mm","esp":1.5,"largo":2000,"ancho":1000,"mat":"DC01"},{"ref":"DC01/01,50X1000X2300","name":"DC01 Blanca 1,5x1000x2300mm","esp":1.5,"largo":2300,"ancho":1000,"mat":"DC01"},{"ref":"DC01/01,50X1250X2100","name":"DC01 Blanca 1,5x1250x2100mm","esp":1.5,"largo":2100,"ancho":1250,"mat":"DC01"},{"ref":"DC01/01,50X1250X2500","name":"DC01 Blanca 1,5x1250x2500mm","esp":1.5,"largo":2500,"ancho":1250,"mat":"DC01"},{"ref":"DC01/01,50X1500X3000","name":"DC01 Blanca 1,5x1500x3000mm","esp":1.5,"largo":3000,"ancho":1500,"mat":"DC01"},{"ref":"DC01/02,00X1250X2500","name":"DC01 Blanca 2x1250x2500mm","esp":2.0,"largo":2500,"ancho":1250,"mat":"DC01"},{"ref":"DC01/02,00X1250X2500/EZ","name":"DC01 Blanca Electrocincada 2x1250x2500mm","esp":2.0,"largo":2500,"ancho":1250,"mat":"DC01-ELEC"},{"ref":"DC01/02,00X1275X2500/EZ","name":"DC01 Blanca Electrocincada 2x1275x2500mm","esp":2.0,"largo":2500,"ancho":1275,"mat":"DC01-ELEC"},{"ref":"DC01/02,00X1275X2500/EZ,","name":"DC01 Blanca Electrocincada 2x1275x2500mm","esp":2.0,"largo":2500,"ancho":1275,"mat":"DC01-ELEC"},{"ref":"DC01/02,00X1500X3000","name":"DC01 Blanca 2x1500x3000mm","esp":2.0,"largo":3000,"ancho":1500,"mat":"DC01"},{"ref":"DC01/02,00X1500X3000/EZ","name":"DC01 Blanca Electrocincada 2x1500x3000mm","esp":2.0,"largo":3000,"ancho":1500,"mat":"DC01-ELEC"},{"ref":"DC03/01,20X1000X2300","name":"DC03 1,2x1000x2300mm","esp":1.2,"largo":2300,"ancho":1000,"mat":"DC03"},{"ref":"DC03/01,20X1000X2600","name":"DC03 1,2x1000x2600mm","esp":1.2,"largo":2600,"ancho":1000,"mat":"DC03"},{"ref":"DC03/01,20X1000X2600/AGUI","name":"DC03 1,2x1000x2600mm Cliente Agui","esp":1.2,"largo":2600,"ancho":1000,"mat":"DC03"},{"ref":"DC03/02,00X1200X2500","name":"DC03 2x1200x2500mm","esp":2.0,"largo":2500,"ancho":1200,"mat":"DC03"},{"ref":"DD11/01,50X1500X3000/DECA","name":"Decapada DD11 1.5x1500x3000mm","esp":1.5,"largo":3000,"ancho":1500,"mat":"ST-DD11"},{"ref":"DD11/02,00X1250X2500/DECA","name":"Decapada DD11 2x1250x2500mm","esp":2.0,"largo":2500,"ancho":1250,"mat":"ST-DD11"},{"ref":"DD11/02,00X1500X3000/DECA","name":"Decapada DD11 2x1500x3000mm","esp":2.0,"largo":3000,"ancho":1500,"mat":"ST-DD11"},{"ref":"DD11/03,00X1500X3000/DECA","name":"Decapada DD11 3x1500x3000mm","esp":3.0,"largo":3000,"ancho":1500,"mat":"ST-DD11"},{"ref":"DD11/04,00X1250X2500/DECA","name":"Decapada DD11 4x1250x2500mm","esp":4.0,"largo":2500,"ancho":1250,"mat":"ST-DD11"},{"ref":"DD11/04,00X1500X2500/DECA","name":"Decapada DD11 4x1500x2500mm","esp":4.0,"largo":2500,"ancho":1500,"mat":"ST-DD11"},{"ref":"DD11/04,00X1500X3000/DECA","name":"Decapada DD11 4x1500x3000mm","esp":4.0,"largo":3000,"ancho":1500,"mat":"ST-DD11"},{"ref":"DD11/05,00X1500X3000/DECA","name":"Decapada DD11 5x1500x3000mm","esp":5.0,"largo":3000,"ancho":1500,"mat":"ST-DD11"},{"ref":"DD11/06,00X1500X3000/DECA","name":"Decapada DD11 6x1500x3000mm","esp":6.0,"largo":3000,"ancho":1500,"mat":"ST-DD11"},{"ref":"DD11/08,00X1500X3000/DECA","name":"Decapada DD11 8x1500x3000mm","esp":8.0,"largo":3000,"ancho":1500,"mat":"ST-DD11"},{"ref":"DD13/02,50X1500X3000/DECA","name":"Decapada DD13 2,5x1500x3000mm","esp":2.0,"largo":3000,"ancho":1500,"mat":"ST-DD13"},{"ref":"DD13/03,00X1500X3000/DECA","name":"Decapada DD13 3x1500x3000mm","esp":3.0,"largo":3000,"ancho":1500,"mat":"ST-DD13"},{"ref":"DD13/04,00X1500X3000/DECA","name":"Decapada DD13 4x1500x3000mm","esp":4.0,"largo":3000,"ancho":1500,"mat":"ST-DD13"},{"ref":"DD13/05,00X1500X3000/DECA","name":"Decapada DD13 5x1500x3000mm","esp":5.0,"largo":3000,"ancho":1500,"mat":"ST-DD13"},{"ref":"JOB023605-APO2X-1","name":"JOB023605-APO2X-1","esp":1.0,"largo":2500,"ancho":1250,"mat":"DC01"},{"ref":"JOB023605-APO2X-1.0000","name":"JOB023605-APO2X-1.0000","esp":1.0,"largo":2300,"ancho":1250,"mat":"DC01"},{"ref":"MAGN/02,00X1250X2500/PYRE","name":"Magnelis 2x1250x2500 Cliente Pyrenees","esp":2.0,"largo":2500,"ancho":1250,"mat":"MAGN"},{"ref":"S220/00,50X1000X2000/Z140","name":"Galva S220 Z140 0,5x1000x2000mm","esp":0.5,"largo":2000,"ancho":1000,"mat":"S220GD-Z140"},{"ref":"S220/00,50X1250X2500/Z140","name":"Galva S220 Z140 0,5x1250x2500mm","esp":0.5,"largo":2500,"ancho":1250,"mat":"S220GD-Z140"},{"ref":"S220/00,50X1269X2225/Z140","name":"Galva S220 Z140 0,5x1269x2225mm","esp":0.5,"largo":2225,"ancho":1269,"mat":"S220GD-Z140"},{"ref":"S220/00,50X1269X2225/Z140/EPTA","name":"Galva S220 Z140 0,5x1269x2225mm Cliente Epta","esp":0.5,"largo":2225,"ancho":1269,"mat":"S220GD-Z140"},{"ref":"S220/00,50X1269X2525/Z140","name":"Galva S220 Z140 0,5x1269x2525mm","esp":0.5,"largo":2525,"ancho":1269,"mat":"S220GD-Z140"},{"ref":"S220/00,50X1269X2525/Z140/EPTA","name":"Galva S220 Z140 0,5x1269x2525mm Cliente Epta","esp":0.5,"largo":2525,"ancho":1269,"mat":"S220GD-Z140"},{"ref":"S220/00,50X1269X2700/Z140/EPTA","name":"Galva S220 Z140 0,5x1269x2700mm Cliente Epta","esp":0.5,"largo":2700,"ancho":1269,"mat":"S220GD-Z140"},{"ref":"S220/00,60X1500X3000/Z140","name":"Galva S220 Z140 0,6x1500x3000mm","esp":0.6,"largo":3000,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/00,70X1250X2200/Z140/EPTA","name":"Galva S220 Z140 0,7x1250x2200mm Cliente Epta","esp":0.7,"largo":2200,"ancho":1250,"mat":"S220GD-Z140"},{"ref":"S220/00,70X1250X2425/Z140/EPTA","name":"Galva S220 Z140 0,7x1250x2425mm Cliente Epta","esp":0.7,"largo":2425,"ancho":1250,"mat":"S220GD-Z140"},{"ref":"S220/00,70X1250X2500/Z140","name":"Galva S220 Z140 0,7x1250x2500mm","esp":0.7,"largo":2500,"ancho":1250,"mat":"S220GD-Z140"},{"ref":"S220/00,70X1250X2725/Z140/EPTA","name":"Galva S220 Z140 0,7x1250x2725mm Cliente Epta","esp":0.7,"largo":2725,"ancho":1250,"mat":"S220GD-Z140"},{"ref":"S220/00,70X1330X2500/Z140","name":"Galva S220 Z140 0,7x1330x2500mm","esp":0.7,"largo":2500,"ancho":1330,"mat":"S220GD-Z140"},{"ref":"S220/00,70X1500X3000/Z140","name":"Galva S220 Z140 0,7x1500x3000mm","esp":0.7,"largo":3000,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/00,80X1250X2500/Z140","name":"Galva S220 Z140 0,8x1250x2500mm","esp":0.8,"largo":2500,"ancho":1250,"mat":"S220GD-Z140"},{"ref":"S220/00,80X1250X2500/Z275","name":"Galva S220 Z275 0,8x1250x2500mm","esp":0.8,"largo":2500,"ancho":1250,"mat":"S220GD-Z275"},{"ref":"S220/00,80X1250X2840/Z140","name":"Galva S220 Z140 0,8x1250x2840mm","esp":0.8,"largo":2840,"ancho":1250,"mat":"S220GD-Z140"},{"ref":"S220/00,80X1250X3000/Z140","name":"Galva S220 Z140 0,8x1250x3000mm","esp":0.8,"largo":3000,"ancho":1250,"mat":"S220GD-Z140"},{"ref":"S220/00,80X1500X3000/Z140","name":"Galva S220 Z140 0,8x1500x3000mm","esp":0.8,"largo":3000,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/01,00X1000X2000/Z275","name":"Galva S220 Z275 1x1000x2000mm","esp":1.0,"largo":2000,"ancho":1000,"mat":"S220GD-Z275"},{"ref":"S220/01,00X1250X1655/Z140","name":"Galva S220 Z140 1x1250x1655mm","esp":1.0,"largo":1655,"ancho":1250,"mat":"S220GD-Z140"},{"ref":"S220/01,00X1250X1700/Z140","name":"Galva S220 Z140 1x1250x1700mm","esp":1.0,"largo":1700,"ancho":1250,"mat":"S220GD-Z140"},{"ref":"S220/01,00X1250X2025/Z140","name":"Galva S220 Z140 1x1250x2025mm","esp":1.0,"largo":2025,"ancho":1250,"mat":"ET-10"},{"ref":"S220/01,00X1250X2250/Z140","name":"Galva S220 Z140 1x1250x2250mm","esp":1.0,"largo":2250,"ancho":1250,"mat":"S220GD-Z140"},{"ref":"S220/01,00X1250X2300/Z140","name":"Galva S220 Z140 1x1250x2300mm","esp":1.0,"largo":2300,"ancho":1250,"mat":"ET-10"},{"ref":"S220/01,00X1250X2500/PREL/ORMA","name":"Galva S220 Prelacada 1x1250x2500mm","esp":1.0,"largo":2500,"ancho":1250,"mat":"S220GD-PREL"},{"ref":"S220/01,00X1250X2500/Z140","name":"Galva S220 Z140 1x1250x2500mm","esp":1.0,"largo":2500,"ancho":1250,"mat":"ET-10"},{"ref":"S220/01,00X1250X2500/Z275","name":"Galva S220 Z275 1x1250x2500mm","esp":1.0,"largo":2500,"ancho":1250,"mat":"S220GD-Z275"},{"ref":"S220/01,00X1250X2700/Z140","name":"Galva S220 Z140 1x1250x2700mm","esp":1.0,"largo":2700,"ancho":1250,"mat":"S220GD-Z140"},{"ref":"S220/01,00X1500X3000/Z140","name":"Galva S220 Z140 1x1500x3000mm","esp":1.0,"largo":3000,"ancho":1500,"mat":"ET-10"},{"ref":"S220/01,20X1000X2000/Z275","name":"Galva S220 Z275 1,2x1000x2000mm","esp":1.2,"largo":2000,"ancho":1000,"mat":"S220GD-Z275"},{"ref":"S220/01,20X1250X2300/Z140","name":"Galva S220 Z140 1,2x1250x2300mm","esp":1.2,"largo":2300,"ancho":1250,"mat":"S220GD-Z140"},{"ref":"S220/01,20X1250X2500/Z140","name":"Galva S220 Z140 1,2x1250x2500mm","esp":1.2,"largo":2500,"ancho":1250,"mat":"S220GD-Z140"},{"ref":"S220/01,20X1250X2500/Z275","name":"Galva S220 Z275 1,2x1250x2500mm","esp":1.2,"largo":2500,"ancho":1250,"mat":"S220GD-Z275"},{"ref":"S220/01,20X1500X3000/Z275","name":"Galva S220 Z275 1,2x1500x3000mm","esp":1.2,"largo":3000,"ancho":1500,"mat":"S220GD-Z275"},{"ref":"S220/01,50X1000X2250/Z275","name":"Galva S220 Z275 1,5x1000x2250mm","esp":1.5,"largo":2250,"ancho":1000,"mat":"S220GD-Z275"},{"ref":"S220/01,50X1250X1610/Z140/ORON","name":"Galva S220 Z140 1,5x1250x1610mm Cliente Orona","esp":1.5,"largo":1610,"ancho":1250,"mat":"S220GD-Z140"},{"ref":"S220/01,50X1250X2050/Z275","name":"Galva S220 Z275 1,5x1250x2050mm","esp":1.5,"largo":2050,"ancho":1250,"mat":"S220GD-Z275"},{"ref":"S220/01,50X1250X2500/Z140","name":"Galva S220 Z140 1,5x1250x2500mm","esp":1.5,"largo":2500,"ancho":1250,"mat":"S220GD-Z140"},{"ref":"S220/01,50X1250X2500/Z275","name":"Galva S220 Z275 1,5x1250x2500mm","esp":1.5,"largo":2500,"ancho":1250,"mat":"S220GD-Z275"},{"ref":"S220/01,50X1250X2700/Z275","name":"Galva S220 Z275 1,5x1250x2700mm","esp":1.5,"largo":2700,"ancho":1250,"mat":"S220GD-Z275"},{"ref":"S220/01,50X1250X3000/Z275","name":"Galva S220 Z275 1,5x1250x3000mm","esp":1.5,"largo":3000,"ancho":1250,"mat":"S220GD-Z275"},{"ref":"S220/01,50X1500X1800/Z140","name":"Galva S220 Z140 1,5x1500x1800mm","esp":1.5,"largo":1800,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/01,50X1500X2210/Z140/AGUI","name":"Galva S220 Z140 1,5x1500x2210mm Cliente Agui","esp":1.5,"largo":2210,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/01,50X1500X2230/Z140","name":"Galva S220 Z140 1,5x1500x2230mm","esp":1.5,"largo":2230,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/01,50X1500X2330/Z140","name":"Galva S220 Z140 1,5x1500x2330mm","esp":1.5,"largo":2330,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/01,50X1500X2350/Z140","name":"Galva S220 Z140 1,5x1500x2350mm","esp":1.5,"largo":2350,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/01,50X1500X2350/Z140/POLY","name":"Galva S220 Z140 1,5x1500x2350mm Cliente Polypal","esp":1.5,"largo":2350,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/01,50X1500X2440/Z140","name":"Galva S220 Z140 1,5x1500x2440mm","esp":1.5,"largo":2440,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/01,50X1500X2510/Z140","name":"Galva S220 Z140 1,5x1500x2510mm","esp":1.5,"largo":2510,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/01,50X1500X2700/Z275","name":"Galva S220 Z275 1,5x1500x2700mm","esp":1.5,"largo":2700,"ancho":1500,"mat":"S220GD-Z275"},{"ref":"S220/01,50X1500X3000/Z140","name":"Galva S220 Z140 1,5x1500x3000mm","esp":1.5,"largo":3000,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/01,50X1500X3000/Z275","name":"Galva S220 Z275 1,5x1500x3000mm","esp":1.5,"largo":3000,"ancho":1500,"mat":"S220GD-Z275"},{"ref":"S220/01,50X1500X4000/Z140","name":"Galva S220 Z140 1,5x1500x4000mm","esp":1.5,"largo":4000,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/01,80X1250X2660/Z140/POLY","name":"Galva S220 Z140 1,8x1250x2660mm Cliente Polypal","esp":1.8,"largo":2660,"ancho":1250,"mat":"S220GD-Z140"},{"ref":"S220/02,00X1000X2000/Z200","name":"Galva S220 Z200 2x1000x2000mm","esp":2.0,"largo":2000,"ancho":1000,"mat":"S220GD-Z200"},{"ref":"S220/02,00X1000X2000/Z275","name":"Galva S220 Z275 2x1000x2000mm","esp":2.0,"largo":2000,"ancho":1000,"mat":"S220GD-Z275"},{"ref":"S220/02,00X1250X1400/Z140","name":"Galva S220 Z140 2x1250x1400mm","esp":2.0,"largo":1400,"ancho":1250,"mat":"S220GD-Z140"},{"ref":"S220/02,00X1250X2000/Z140","name":"Galva S220 Z140 2x1250x2000mm","esp":2.0,"largo":2000,"ancho":1250,"mat":"S220GD-Z140"},{"ref":"S220/02,00X1250X2250/Z275","name":"Galva S220 Z275 2,0x1250x2250mm","esp":2.0,"largo":2250,"ancho":1250,"mat":"S220GD-Z275"},{"ref":"S220/02,00X1250X2500/Z140","name":"Galva S220 Z140 2x1250x2500mm","esp":2.0,"largo":2500,"ancho":1250,"mat":"S220GD-Z140"},{"ref":"S220/02,00X1250X2500/Z275","name":"Galva S220 Z275 2x1500x2500mm","esp":2.0,"largo":2500,"ancho":1250,"mat":"S220GD-Z275"},{"ref":"S220/02,00X1350X3000/Z140/POLY","name":"Galva S220 Z140 2,0x1350x3000mm Cliente Polypal","esp":2.0,"largo":3000,"ancho":1350,"mat":"S220GD-Z140"},{"ref":"S220/02,00X1500X2000/Z140","name":"Galva S220 Z140 2x1500x2000mm","esp":2.0,"largo":2000,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/02,00X1500X2500/Z140","name":"Galva S220 Z140 2x1500x2500mm","esp":2.0,"largo":2500,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/02,00X1500X2580/Z140","name":"Galva S220 Z140 2x1500x2580mm","esp":2.0,"largo":2580,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/02,00X1500X3000/Z140","name":"Galva S220 Z140 2x1500x3000mm","esp":2.0,"largo":3000,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/02,00X1500X3000/Z275","name":"Galva S220 Z275 2x1500x3000mm","esp":2.0,"largo":3000,"ancho":1500,"mat":"S220GD-Z275"},{"ref":"S220/02,50X1000X2000/Z200/AGUI","name":"Galva S220 Z200 2,5x1000x2000mm Cliente Agui","esp":2.5,"largo":2000,"ancho":1000,"mat":"S220GD-Z200"},{"ref":"S220/02,50X1000X2000/Z275","name":"Galva S220 Z275 2,5x1000x2000mm","esp":2.5,"largo":2000,"ancho":1000,"mat":"S220GD-Z275"},{"ref":"S220/02,50X1250X2500/Z140","name":"Galva S220 Z140 2,5x1250x2500mm","esp":2.5,"largo":2500,"ancho":1250,"mat":"S220GD-Z140"},{"ref":"S220/02,50X1250X2500/Z275","name":"Galva S220 Z275 2,5x1250x2500mm","esp":2.5,"largo":2500,"ancho":1250,"mat":"S220GD-Z275"},{"ref":"S220/02,50X1250X3000/Z275","name":"Galva S220 Z275 2,5x1250x3000mm","esp":2.5,"largo":3000,"ancho":1250,"mat":"S220GD-Z275"},{"ref":"S220/02,50X1250X4000/Z275","name":"Galva S220 Z275 2,5x1250x4000mm","esp":2.5,"largo":4000,"ancho":1250,"mat":"S220GD-Z275"},{"ref":"S220/02,50X1500X2000/Z140","name":"Galva S220 Z140 2,5x1500x2000mm","esp":2.5,"largo":2000,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/02,50X1500X2000/Z140/ORON","name":"Galva S220 Z140 2,5x1500x2000mm Cliente Orona","esp":2.5,"largo":2000,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/02,50X1500X2500/Z140/ORON","name":"Galva S220 Z140 2,5x1500x2500mm Cliente Orona","esp":2.5,"largo":2500,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/02,50X1500X2500/Z275","name":"Galva S220 Z275 2,5x1500x2500mm","esp":2.5,"largo":2500,"ancho":1500,"mat":"S220GD-Z275"},{"ref":"S220/02,50X1500X3000/Z140","name":"Galva S220 Z140 2,5x1500x3000mm","esp":2.5,"largo":3000,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/02,50X1500X3750/Z275","name":"Galva S220 Z275 2,5x1500x3750mm","esp":2.5,"largo":3750,"ancho":1500,"mat":"S220GD-Z275"},{"ref":"S220/03,00X1000X2000/Z200","name":"Galva S220 Z200 3x1000x2000mm","esp":3.0,"largo":2000,"ancho":1000,"mat":"S220GD-Z200"},{"ref":"S220/03,00X1000X2000/Z275","name":"Galva S220 Z275 3x1000x2000mm","esp":3.0,"largo":2000,"ancho":1000,"mat":"S220GD-Z275"},{"ref":"S220/03,00X1000X2000/Z275/AGUI","name":"Galva S220 Z275 3x1000x2000mm Cliente Agui","esp":3.0,"largo":2000,"ancho":1000,"mat":"S220GD-Z275"},{"ref":"S220/03,00X1000X3000/Z140","name":"Galva S220 Z140 3x1000x3000mm","esp":3.0,"largo":3000,"ancho":1000,"mat":"S220GD-Z140"},{"ref":"S220/03,00X1250X2500/Z275","name":"Galva S220 Z275 3x1250x2500mm","esp":3.0,"largo":2500,"ancho":1250,"mat":"S220GD-Z275"},{"ref":"S220/03,00X1500X2100/Z275","name":"Galva S220 Z275 3x1500x2100mm","esp":3.0,"largo":2100,"ancho":1500,"mat":"S220GD-Z275"},{"ref":"S220/03,00X1500X2500/Z140","name":"Galva S220 Z140 3x1500x2500mm","esp":3.0,"largo":2500,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/03,00X1500X2500/Z140/ORON","name":"Galva S220 Z140 3x1500x2500mm Cliente Orona","esp":3.0,"largo":2500,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/03,00X1500X2500/Z275","name":"Galva S220 Z275 3x1500x2500mm","esp":3.0,"largo":2500,"ancho":1500,"mat":"S220GD-Z275"},{"ref":"S220/03,00X1500X2770/Z140","name":"Galva S220 Z140 3x1500x2770mm","esp":3.0,"largo":2770,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/03,00X1500X3000/Z140","name":"Galva S220 Z140 3x1500x3000mm","esp":3.0,"largo":3000,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/03,00X1500X3000/Z140/ORON","name":"Galva S220 Z140 3x1500x3000mm Cliente Orona","esp":3.0,"largo":3000,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/03,00X1500X3000/Z275","name":"Galva S220 Z275 3x1500x3000mm","esp":3.0,"largo":3000,"ancho":1500,"mat":"S220GD-Z275"},{"ref":"S220/03,00X1500X4000/Z140","name":"Galva S220 Z140 3x1500x4000mm","esp":3.0,"largo":4000,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/03,00X1500X4000/Z275","name":"Galva S220 Z275 3x1500x4000mm","esp":3.0,"largo":4000,"ancho":1500,"mat":"S220GD-Z275"},{"ref":"S220/04,00X1250X2120/Z140/POLY","name":"Galva S220 Z140 4x1250x2120mm Cliente Polypal","esp":4.0,"largo":2120,"ancho":1250,"mat":"S220GD-Z140"},{"ref":"S220/04,00X1250X2500/Z275","name":"Galva S220 Z275 4x1250x2500mm","esp":4.0,"largo":2500,"ancho":1250,"mat":"S220GD-Z275"},{"ref":"S220/04,00X1500X2000/Z140","name":"Galva S220 Z140 4x1500x2000mm","esp":4.0,"largo":2000,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/04,00X1500X3000/Z140","name":"Galva S220 Z140 4x1500x3000mm","esp":4.0,"largo":3000,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/04,00X1500X3000/Z140/ORON","name":"Galva S220 Z140 4x1500x3000mm Cliente Orona","esp":4.0,"largo":3000,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/04,00X1500X3000/Z275","name":"Galva S220 Z275 4x1500x3000mm","esp":4.0,"largo":3000,"ancho":1500,"mat":"S220GD-Z275"},{"ref":"S220/04,00X1500X4000/Z140","name":"Galva S220 Z140 4x1500x4000mm","esp":4.0,"largo":4000,"ancho":1500,"mat":"S220GD-Z140"},{"ref":"S220/04,00X1500X4000/Z275","name":"Galva S220 Z275 4x1500x4000mm","esp":4.0,"largo":4000,"ancho":1500,"mat":"S220GD-Z275"},{"ref":"S235/02,00X1000X2000/NEGR","name":"Negra S235 2x1000x2000mm","esp":2.0,"largo":2000,"ancho":1000,"mat":"ST-S235-NEGR"},{"ref":"S235/02,00X1250X2500/DECA","name":"Decapada S235 2x1250x2500mm","esp":2.0,"largo":2500,"ancho":1250,"mat":"ST-S235-DECA"},{"ref":"S235/02,00X1500X3000/DECA","name":"Decapada S235 2x1500x3000mm","esp":2.0,"largo":3000,"ancho":1500,"mat":"ST-S235-DECA"},{"ref":"S235/02,00X1500X3000/NEGR","name":"Negra S235 2x1500x3000mm (NO TOCAR HABLAR CON ALEX)","esp":2.0,"largo":3000,"ancho":1500,"mat":"ST-S235-NEGR"},{"ref":"S235/02,50X1500X3000/DECA","name":"Decapada S235 2,5x1500x3000mm","esp":2.5,"largo":3000,"ancho":1500,"mat":"ST-S235-DECA"},{"ref":"S235/03,00X1000X2000/ESTR/3/5","name":"Estriada S235 3/5x1000x2000mm","esp":4.0,"largo":2000,"ancho":1000,"mat":"ST-S235-ESTR"},{"ref":"S235/03,00X1000X2000/LAGR/3/5","name":"Lagrimada S235 3/5x1000x2000mm","esp":4.0,"largo":2000,"ancho":1000,"mat":"ST-S235-LAGR"},{"ref":"S235/03,00X1184X1700/NEGR","name":"Negra S235 3x1184x1700mm","esp":3.0,"largo":1700,"ancho":1184,"mat":"ST-S235-NEGR"},{"ref":"S235/03,00X1250X2500/DECA","name":"Decapada S235 3x1250x2500mm","esp":3.0,"largo":2500,"ancho":1250,"mat":"ST-S235-DECA"},{"ref":"S235/03,00X1500X1700/DECA","name":"Decapada S235 3x1500x1700mm","esp":3.0,"largo":1700,"ancho":1500,"mat":"ST-S235-DECA"},{"ref":"S235/03,00X1500X1700/NEGR","name":"Negra S235 3x1500x1700mm","esp":3.0,"largo":1700,"ancho":1500,"mat":"ST-S235-NEGR"},{"ref":"S235/03,00X1500X2000/ESTR/3/5","name":"Estriada S235 3/5x1500x2000mm","esp":4.0,"largo":2000,"ancho":1500,"mat":"ST-S235-ESTR"},{"ref":"S235/03,00X1500X2200/ESTR/3/5","name":"Estriada S235 3/5x1500x2200mm","esp":4.0,"largo":2200,"ancho":1500,"mat":"ST-S235-ESTR"},{"ref":"S235/03,00X1500X3000/DECA","name":"Decapada S235 3x1500x3000mm","esp":3.0,"largo":3000,"ancho":1500,"mat":"ST-S235-DECA"},{"ref":"S235/03,00X1500X3000/ESTR/3/5","name":"Estriada S235 3/5x1500x3000mm","esp":4.0,"largo":3000,"ancho":1500,"mat":"ST-S235-ESTR"},{"ref":"S235/03,00X1500X3000/NEGR","name":"Negra S235 3x1500x3000mm","esp":3.0,"largo":3000,"ancho":1500,"mat":"ST-S235-NEGR"},{"ref":"S235/03,00X1500X4000/DECA","name":"Decapada S235 3x1500x4000mm","esp":3.0,"largo":4000,"ancho":1500,"mat":"ST-S235-DECA"},{"ref":"S235/03,00X1500X4000/NEGR","name":"Negra S235 3x1500x4000mm","esp":3.0,"largo":4000,"ancho":1500,"mat":"ST-S235-NEGR"},{"ref":"S235/04,00X1000X2000/ESTR/4/6","name":"Estriada S235 4/6x1000x2000mm","esp":5.0,"largo":2000,"ancho":1000,"mat":"ST-S235-ESTR"},{"ref":"S235/04,00X1000X2000/LAGR/4/6","name":"Lagrimada S235 4/6x1000x2000mm","esp":5.0,"largo":2000,"ancho":1000,"mat":"ST-S235-LAGR"},{"ref":"S235/04,00X1250X3000/DECA","name":"Decapada S235 4x1250x3000mm","esp":4.0,"largo":3000,"ancho":1250,"mat":"ST-S235-DECA"},{"ref":"S235/04,00X1500X3000/DECA","name":"Decapada S235 4x1500x3000mm","esp":4.0,"largo":3000,"ancho":1500,"mat":"ST-S235-DECA"},{"ref":"S235/04,00X1500X3000/ESTR/4/6","name":"Estriada S235 4/6x1500x3000mm","esp":5.0,"largo":3000,"ancho":1500,"mat":"ST-S235-ESTR"},{"ref":"S235/04,00X1500X3000/LAGR/4/6","name":"Lagrimada S235 4/6x1500x3000mm","esp":5.0,"largo":3000,"ancho":1500,"mat":"ST-S235-LAGR"},{"ref":"S235/04,00X1500X3000/NEGR","name":"Negra S235 4x1500x3000mm","esp":4.0,"largo":3000,"ancho":1500,"mat":"ST-S235-NEGR"},{"ref":"S235/04,00X1500X4000/DECA","name":"Decapada S235 4x1500x4000mm","esp":4.0,"largo":4000,"ancho":1500,"mat":"ST-S235-DECA"},{"ref":"S235/04,00X1500X4000/NEGR","name":"Negra S235 4x1500x4000mm","esp":4.0,"largo":4000,"ancho":1500,"mat":"ST-S235-NEGR"},{"ref":"S235/05,00X1500X1700/NEGR","name":"Negra S235 5x1500x1700mm","esp":5.0,"largo":1700,"ancho":1500,"mat":"ST-S235-NEGR"},{"ref":"S235/05,00X1500X1850/DECA","name":"Decapada S235 5x1500x1850mm","esp":5.0,"largo":1850,"ancho":1500,"mat":"ST-S235-DECA"},{"ref":"S235/05,00X1500X1850/NEGR","name":"Negra S235 5x1500x1850mm","esp":5.0,"largo":1850,"ancho":1500,"mat":"ST-S235-NEGR"},{"ref":"S235/05,00X1500X2125/NEGR","name":"Negra S235 5x1500x2125mm","esp":5.0,"largo":2125,"ancho":1500,"mat":"ST-S235-NEGR"},{"ref":"S235/05,00X1500X3000/DECA","name":"Decapada S235 5x1500x3000mm","esp":5.0,"largo":3000,"ancho":1500,"mat":"ST-S235-DECA"},{"ref":"S235/05,00X1500X3000/ESTR/5/7","name":"Estriada S235 5/7x1500x3000mm","esp":6.0,"largo":3000,"ancho":1500,"mat":"ST-S235-ESTR"},{"ref":"S235/05,00X1500X3000/LAGR/5/7","name":"Lagrimada S235 5/7x1500x3000mm","esp":6.0,"largo":3000,"ancho":1500,"mat":"ST-S235-LAGR"},{"ref":"S235/05,00X1500X3000/LAGR/8/10","name":"Lagrimada S235 8/10x1500x3000mm","esp":9.0,"largo":3000,"ancho":1500,"mat":"ST-S235-LAGR"},{"ref":"S235/05,00X1500X3000/NEGR","name":"Negra S235 5x1500x3000mm","esp":5.0,"largo":3000,"ancho":1500,"mat":"ST-S235-NEGR"},{"ref":"S235/05,00X1500X4000/DECA","name":"Decapada S235 5x1500x4000mm","esp":5.0,"largo":4000,"ancho":1500,"mat":"ST-S235-DECA"},{"ref":"S235/06,00X1000X2000/DECA","name":"Decapada S235 6x1000x2000mm","esp":6.0,"largo":2000,"ancho":1000,"mat":"ST-S235-DECA"},{"ref":"S235/06,00X1000X2000/NEGR","name":"Negra S235 6x1000x2000mm","esp":6.0,"largo":2000,"ancho":1000,"mat":"ST-S235-NEGR"},{"ref":"S235/06,00X1500X3000/DECA","name":"Decapada S235 6x1500x3000mm","esp":6.0,"largo":3000,"ancho":1500,"mat":"ST-S235-DECA"},{"ref":"S235/06,00X1500X3000/NEGR","name":"Negra S235 6x1500x3000mm","esp":6.0,"largo":3000,"ancho":1500,"mat":"ST-S235-NEGR"},{"ref":"S235/06,00X1500X3000/NEGR/SALV","name":"Negra S235 6x1500x3000mm Cliente Salva","esp":6.0,"largo":3000,"ancho":1500,"mat":"ST-S235-NEGR"},{"ref":"S235/06,00X1500X4000/NEGR","name":"Negra S235 6x1500x4000mm","esp":6.0,"largo":4000,"ancho":1500,"mat":"ST-S235-NEGR"},{"ref":"S235/08,00X1500X2800/NEGR","name":"Negra S235 8x1500x2800mm","esp":8.0,"largo":2800,"ancho":1500,"mat":"ST-S235-NEGR"},{"ref":"S235/08,00X1500X3000/DECA","name":"Decapada S235 8x1500x3000mm","esp":8.0,"largo":3000,"ancho":1500,"mat":"ST-S235-DECA"},{"ref":"S235/08,00X1500X3000/NEGR","name":"Negra S235 8x1500x3000mm","esp":8.0,"largo":3000,"ancho":1500,"mat":"ST-S235-NEGR"},{"ref":"S235/10,00X1000X2000/NEGR","name":"Negra S235 10x1000x2000mm","esp":10.0,"largo":2000,"ancho":1000,"mat":"ST-S235-NEGR"},{"ref":"S235/10,00X1500X3000/DECA","name":"Decapada S235 10x1500x3000mm","esp":10.0,"largo":3000,"ancho":1500,"mat":"ST-S235-DECA"},{"ref":"S235/10,00X1500X3000/NEGR","name":"Negra S235 10x1500x3000mm","esp":10.0,"largo":3000,"ancho":1500,"mat":"ST-S235-NEGR"},{"ref":"S235/10,00X1500X3500/DECA","name":"Decapada S235 10x1500x3500mm","esp":10.0,"largo":3500,"ancho":1500,"mat":"ST-S235-DECA"},{"ref":"S235/12,00X1500X3000/DECA","name":"Decapada S235 12x1500x3000mm","esp":12.0,"largo":3000,"ancho":1500,"mat":"ST-S235-DECA"},{"ref":"S235/12,00X1500X3000/NEGR","name":"Negra S235 12x1500x3000mm","esp":12.0,"largo":3000,"ancho":1500,"mat":"ST-S235-NEGR"},{"ref":"S235/15,00X1500X3000/DECA","name":"Decapada S235 15x1500x3000mm","esp":15.0,"largo":3000,"ancho":1500,"mat":"ST-S235-DECA"},{"ref":"S235/15,00X1500X3000/NEGR","name":"Negra S235 15x1500x3000mm","esp":15.0,"largo":3000,"ancho":1500,"mat":"ST-S235-NEGR"},{"ref":"S235/18,00X1500X3000/DECA","name":"Decapada S235 18x1500x3000mm","esp":18.0,"largo":3000,"ancho":1500,"mat":"ST-S235-DECA"},{"ref":"S235/18,00X1500X3000/NEGR","name":"Negra S235 18x1500x3000mm","esp":18.0,"largo":3000,"ancho":1500,"mat":"ST-S235-NEGR"},{"ref":"S235/20,00X1000X2000/NEGR","name":"Negra S235 20x1000x2000mm","esp":20.0,"largo":2000,"ancho":1000,"mat":"ST-S235-NEGR"},{"ref":"S235/20,00X1500X3000/DECA","name":"Decapada S235 20x1500x3000mm","esp":20.0,"largo":3000,"ancho":1500,"mat":"ST-S235-DECA"},{"ref":"S235/20,00X1500X3000/NEGR","name":"Negra S235 20x1500x3000mm","esp":20.0,"largo":3000,"ancho":1500,"mat":"ST-S235-NEGR"},{"ref":"S250/00,80X1250X2000/Z275","name":"Galva S250 Z275 0,8x1250x2000mm","esp":0.8,"largo":2000,"ancho":1250,"mat":"S250GD-Z275"},{"ref":"S250/01,20X1250X2000/Z275","name":"Galva S250 Z275 1,2x1250x2000mm","esp":1.2,"largo":2000,"ancho":1250,"mat":"S250GD-Z275"},{"ref":"S250/02,00X1500X2000/Z275","name":"Galva S250 Z275 2x1500x2000mm","esp":2.0,"largo":2000,"ancho":1500,"mat":"S250GD-Z275"},{"ref":"S250/02,00X1500X3000/Z275","name":"Galva S250 Z275 2x1500x3000mm","esp":2.0,"largo":3000,"ancho":1500,"mat":"S250GD-Z275"},{"ref":"S250/02,50X1250X2300/Z200","name":"Galva S250 Z200 2,5x1250x2300mm","esp":2.5,"largo":2300,"ancho":1250,"mat":"S250GD-Z200"},{"ref":"S250/03,00X1250X2500/Z275","name":"Galva S250 Z275 3x1250x2500mm","esp":3.0,"largo":2500,"ancho":1250,"mat":"S250GD-Z275"},{"ref":"S275/03,00X1500X3000/NEGR","name":"Negra S275 3x1500x3000mm","esp":3.0,"largo":3000,"ancho":1500,"mat":"ST-S275-NEGR"},{"ref":"S275/04,00X1500X3000/NEGR","name":"Negra S275 4x1500x3000mm","esp":4.0,"largo":3000,"ancho":1500,"mat":"ST-S275-NEGR"},{"ref":"S275/05,00X1500X2000/NEGR","name":"Negra S275 5x1500x2000mm","esp":5.0,"largo":2000,"ancho":1500,"mat":"ST-S275-NEGR"},{"ref":"S275/05,00X1500X3000/NEGR","name":"Negra S275 5x1500x3000mm","esp":5.0,"largo":3000,"ancho":1500,"mat":"ST-S275-NEGR"},{"ref":"S275/06,00X1500X2000/DECA","name":"Decapada S275 6x1500x2000mm","esp":6.0,"largo":2000,"ancho":1500,"mat":"ST-S275-DECA"},{"ref":"S275/06,00X1500X3000/DECA","name":"Decapada S275 6x1500x3000mm","esp":6.0,"largo":3000,"ancho":1500,"mat":"ST-S275-DECA"},{"ref":"S275/06,00X1500X3000/NEGR","name":"Negra S275 6x1500x3000mm","esp":6.0,"largo":3000,"ancho":1500,"mat":"ST-S275-NEGR"},{"ref":"S275/08,00X1500X3000/NEGR","name":"Negra S275 8x1500x3000mm","esp":8.0,"largo":3000,"ancho":1500,"mat":"ST-S275-NEGR"},{"ref":"S275/10,00X1500X3000/DECA","name":"Decapada S275 10x1500x3000mm","esp":10.0,"largo":3000,"ancho":1500,"mat":"ST-S275-DECA"},{"ref":"S275/10,00X1500X3000/NEGR","name":"Negra S275 10x1500x3000mm","esp":10.0,"largo":3000,"ancho":1500,"mat":"ST-S275-NEGR"},{"ref":"S275/12,00X1500X3000/NEGR","name":"Negra S275 12x1500x3000mm","esp":12.0,"largo":3000,"ancho":1500,"mat":"ST-S275-NEGR"},{"ref":"S275/15,00X1500X3000/DECA","name":"Decapada S275 15x1500x3000mm","esp":15.0,"largo":3000,"ancho":1500,"mat":"ST-S275-DECA"},{"ref":"S275/15,00X1500X3000/NEGR","name":"Negra S275 15x1500x3000mm","esp":15.0,"largo":3000,"ancho":1500,"mat":"ST-S275-NEGR"},{"ref":"S280/01,00X1250X2000/Z275","name":"Galva S280 Z275 1x1250x2000mm","esp":1.0,"largo":2000,"ancho":1250,"mat":"S280GD-Z275"},{"ref":"S280/03,00X1050X1670/Z275","name":"Galva S280 Z275 3x1050x1670mm","esp":3.0,"largo":1670,"ancho":1050,"mat":"S280GD-Z275"},{"ref":"S280/03,00X1500X3000/Z275","name":"Galva S280 Z275 3x1500x3000mm","esp":3.0,"largo":3000,"ancho":1500,"mat":"S280GD-Z275"},{"ref":"S350/04,00X1500X2500/Z275","name":"Galva S350 Z275 4x1500x2500mm","esp":4.0,"largo":2500,"ancho":1500,"mat":"S350GD-Z275"},{"ref":"S350/04,00X1500X2500/Z275/AGUI","name":"Galva S350 Z275 4x1500x2500mm Cliente Agui","esp":4.0,"largo":2500,"ancho":1500,"mat":"S350GD-Z275"},{"ref":"S355/02,00X1500X3000/CORT","name":"Corten S355 2x1500x3000mm","esp":2.0,"largo":3000,"ancho":1500,"mat":"ST-S355-CORT"},{"ref":"S355/02,50X1271X3000/CORT/BELL","name":"Corten S355 2,5x1271x3000mm Cliente Bellota","esp":2.5,"largo":3000,"ancho":1271,"mat":"ST-S355-CORT"},{"ref":"S355/02,85X1170X2720/CORT/BELL","name":"Corten S355 2,85x1170x2720mm Cliente Bellota","esp":2.85,"largo":2720,"ancho":1170,"mat":"ST-S355-CORT"},{"ref":"S355/02,85X1298X2886/CORT/BELL","name":"Corten S355 2,85x1298x2886mm Cliente Bellota","esp":2.85,"largo":2886,"ancho":1298,"mat":"ST-S355-CORT"},{"ref":"S355/03,00X1298X2886/CORT/BELL","name":"Corten S355 3,0x1298x2886mm Cliente Bellota","esp":3.0,"largo":2886,"ancho":1298,"mat":"ST-S355-CORT"},{"ref":"S355/03,00X1310X1700/NEGR","name":"Negra S355 3x1310x1700mm","esp":3.0,"largo":1700,"ancho":1310,"mat":"ST-S355-NEGR"},{"ref":"S355/03,00X1500X3000/CORT","name":"Corten S355 3x1500x3000mm","esp":3.0,"largo":3000,"ancho":1500,"mat":"ST-S355-CORT"},{"ref":"S355/03,00X1500X3000/NEGR","name":"Negra S355 3x1500x3000mm","esp":3.0,"largo":3000,"ancho":1500,"mat":"ST-S355-NEGR"},{"ref":"S355/03,50X1025X1935/CORT/BELL","name":"Corten S355 3,50x1025x1935mm Cliente Bellota","esp":3.5,"largo":1935,"ancho":1025,"mat":"ST-S355-CORT"},{"ref":"S355/03,50X1400X2917/CORT/BELL","name":"Corten S355 3,50x1400x2917mm Cliente Bellota","esp":3.5,"largo":2917,"ancho":1400,"mat":"ST-S355-CORT"},{"ref":"S355/04,00X1500X3000/CORT","name":"Corten S355 4x1500x3000mm","esp":4.0,"largo":3000,"ancho":1500,"mat":"ST-S355-CORT"},{"ref":"S355/04,00X1500X3000/NEGR","name":"Negra S355 4x1500x3000mm","esp":4.0,"largo":3000,"ancho":1500,"mat":"ST-S355-NEGR"},{"ref":"S355/04,80X1207X2905/CORT/BELL","name":"Corten S355 4,8x1207x2905mm Cliente Bellota","esp":4.8,"largo":2905,"ancho":1207,"mat":"ST-S355-CORT"},{"ref":"S355/05,00X1340X2940/CORT/BELL","name":"Corten S355 5,0x1340x2940mm Cliente Bellota","esp":5.0,"largo":2940,"ancho":1340,"mat":"ST-S355-CORT"},{"ref":"S355/05,00X1500X3000/CORT","name":"Corten S355 5x1500x3000mm","esp":5.0,"largo":3000,"ancho":1500,"mat":"ST-S355-CORT"},{"ref":"S355/05,00X1500X3000/NEGR","name":"Negra S355 5x1500x3000mm","esp":5.0,"largo":3000,"ancho":1500,"mat":"ST-S355-NEGR"},{"ref":"S355/05,70X1320X2465/CORT/BELL","name":"Corten S355 5,7x1320x2465mm Cliente Bellota","esp":5.7,"largo":2465,"ancho":1320,"mat":"ST-S355-CORT"},{"ref":"S355/06,00X1000X2000/NEGR/SALV","name":"Negra S355 6x1000x2000mm Cliente Salva","esp":6.0,"largo":2000,"ancho":1000,"mat":"ST-S355-NEGR"},{"ref":"S355/06,00X1320X2835/CORT/BELL","name":"Corten S355 6,0x1320x2835mm Cliente Bellota","esp":6.0,"largo":2835,"ancho":1320,"mat":"ST-S355-CORT"},{"ref":"S355/06,00X1500X2000/DECA","name":"Decapada S355 6x1500x2000mm","esp":6.0,"largo":2000,"ancho":1500,"mat":"ST-S355-DECA"},{"ref":"S355/06,00X1500X2000/NEGR","name":"Negra S355 6x1500x2000mm","esp":6.0,"largo":2000,"ancho":1500,"mat":"ST-S355-NEGR"},{"ref":"S355/06,00X1500X3000/CORT","name":"Corten S355 6x1500x3000mm","esp":6.0,"largo":3000,"ancho":1500,"mat":"ST-S355-CORT"},{"ref":"S355/06,00X1500X3000/NEGR","name":"Negra S355 6x1500x3000mm","esp":6.0,"largo":3000,"ancho":1500,"mat":"ST-S355-NEGR"},{"ref":"S355/06,50X1208X2995/CORT/BELL","name":"Corten S355 6,5x1208x2995mm Cliente Bellota","esp":6.5,"largo":2995,"ancho":1208,"mat":"ST-S355-CORT"},{"ref":"S355/08,00X1500X3000/CORT","name":"Corten S355 8x1500x3000mm","esp":8.0,"largo":3000,"ancho":1500,"mat":"ST-S355-CORT"},{"ref":"S355/08,00X1500X3000/NEGR","name":"Negra S355 8x1500x3000mm","esp":8.0,"largo":3000,"ancho":1500,"mat":"ST-S355-NEGR"},{"ref":"S355/10,00X1500X3000/CORT","name":"Corten S355 10x1500x3000mm","esp":10.0,"largo":3000,"ancho":1500,"mat":"ST-S355-CORT"},{"ref":"S355/10,00X1500X3000/NEGR","name":"Negra S355 10x1500x3000mm","esp":10.0,"largo":3000,"ancho":1500,"mat":"ST-S355-NEGR"},{"ref":"S355/12,00X1500X3000/CORT","name":"Corten S355 12x1500x3000mm","esp":12.0,"largo":3000,"ancho":1500,"mat":"ST-S355-CORT"},{"ref":"S355/12,00X1500X3000/NEGR","name":"Negra S355 12x1500x3000mm","esp":12.0,"largo":3000,"ancho":1500,"mat":"ST-S355-NEGR"},{"ref":"S355/13,00X1500X2975/CORT/BELL","name":"Corten S355 13,0x1500x2975mm Cliente Bellota","esp":13.0,"largo":2975,"ancho":1500,"mat":"ST-S355-CORT"},{"ref":"S355/15,00X1500X3000/NEGR","name":"Negra S355 15x1500x3000mm","esp":15.0,"largo":3000,"ancho":1500,"mat":"ST-S355-NEGR"},{"ref":"S355/16,00X1500X3000/DECA","name":"Decapada S355 16x1500x3000mm","esp":16.0,"largo":3000,"ancho":1500,"mat":"ST-S355-DECA"},{"ref":"S355/16,00X1500X3000/NEGR","name":"Negra S355 16x1500x3000mm","esp":16.0,"largo":3000,"ancho":1500,"mat":"ST-S355-NEGR"},{"ref":"S355/18,00X1500X3000/NEGR","name":"Negra S355 18x1500x3000mm","esp":18.0,"largo":3000,"ancho":1500,"mat":"ST-S355-NEGR"},{"ref":"S500/05,00X1500X3000/DECA/AGUI","name":"Decapada S500 5x1500x3000mm Cliente Agui","esp":5.0,"largo":3000,"ancho":1500,"mat":"S500MC"},{"ref":"S500/06,00X1500X3000/DECA/AGUI","name":"Decapada S500 6x1500x3000mm Cliente Agui","esp":6.0,"largo":3000,"ancho":1500,"mat":"S500MC"},{"ref":"S500/10,00X1500X2000/DECA","name":"Decapada S500 10x1500x2000mm","esp":10.0,"largo":2000,"ancho":1500,"mat":"S500MC"},{"ref":"S500/10,00X1500X3000/DECA","name":"Decapada S500 10x1500x3000mm","esp":10.0,"largo":3000,"ancho":1500,"mat":"S500MC"},{"ref":"S500/10,00X1500X3000/DECA/AGUI","name":"Decapada S500 10x1500x3000mm Cliente Agui","esp":10.0,"largo":3000,"ancho":1500,"mat":"S500MC"},{"ref":"VA-COBR/02,00X1000X2000","name":"Cobre 2x1000x2000mm","esp":2.0,"largo":2000,"ancho":1000,"mat":"VA-COBR"},{"ref":"VA-COBR/03,00X1000X2000","name":"Cobre 3x1000x2000mm","esp":3.0,"largo":2000,"ancho":1000,"mat":"VA-COBR"},{"ref":"VA-COBR/04,00X1000X2000","name":"Cobre 4x1000x2000mm","esp":4.0,"largo":2000,"ancho":1000,"mat":"VA-COBR"},{"ref":"VA-LATO/01,00X1000X2000/ZUBI","name":"Latón 1x1000x2000mm Cliente Zubi","esp":1.0,"largo":2000,"ancho":1000,"mat":"VA-LATO"},{"ref":"VA-LATO/02,00X1000X2000","name":"Latón 2x1000x2000mm","esp":2.0,"largo":2000,"ancho":1000,"mat":"VA-LATO"}];
+
+const TOL=0.10;
+let db={palets:[]};
+try{const s=localStorage.getItem('mmpp_teklan');if(s)db=JSON.parse(s);}catch(e){}
+let cnt=db.palets.length+1,uRec='Iñigo',uMaq='Manuel',sel=null,copies=1,curPalet=null;
+
+function save(){try{localStorage.setItem('mmpp_teklan',JSON.stringify(db));}catch(e){}}
+function ts(){const d=new Date();return d.toLocaleDateString('es-ES')+' '+d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});}
+function gid(){return 'PAL-'+String(cnt++).padStart(6,'0');}
+
+function go(n,el){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('s-'+n).classList.add('active');
+  el.classList.add('active');
+  if(n==='hist')rh();
+  cdd();
+}
+function cu(el,g,n){
+  document.querySelectorAll('#c-'+g+' .chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  if(g==='rec'){
+    uRec=n;
+    const wrap=document.getElementById('otro-rec-wrap');
+    if(n==='Otro'){wrap.style.display='block';document.getElementById('otro-rec-inp').value='';uRec='';}
+    else{wrap.style.display='none';}
+  } else uMaq=n;
+}
+function uRecOtro(v){uRec=v.trim();}
+function chgCopies(d){copies=Math.max(1,Math.min(20,copies+d));document.getElementById('copies-val').textContent=copies;}
+
+function switchSearch(mode,el){
+  document.querySelectorAll('.search-tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('search-ref').style.display=mode==='ref'?'block':'none';
+  document.getElementById('search-dim').style.display=mode==='dim'?'block':'none';
+  document.getElementById('ref-det').style.display='none';
+  document.getElementById('et-card').style.display='none';
+  sel=null;
+}
+
+function sr(){
+  const q=document.getElementById('ref-inp').value.trim().toLowerCase();
+  const dd=document.getElementById('ref-dd');
+  if(!q){dd.classList.remove('open');return;}
+  const hits=C.filter(r=>r.ref.toLowerCase().includes(q)||r.name.toLowerCase().includes(q)||r.mat.toLowerCase().includes(q)).slice(0,12);
+  if(!hits.length){dd.innerHTML='<div class="ddi" style="color:#999">Sin resultados</div>';dd.classList.add('open');return;}
+  dd.innerHTML=hits.map(r=>`<div class="ddi" onclick="pick('${r.ref.replace(/'/g,"\\'")}')"><div class="ddi-ref">${r.ref}</div><div class="ddi-name">${r.name}</div></div>`).join('');
+  dd.classList.add('open');
+}
+function cdd(){try{document.getElementById('ref-dd').classList.remove('open');}catch(e){}}
+document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))cdd();});
+
+function sd(){
+  const esp=parseFloat(document.getElementById('dim-esp').value);
+  const anc=parseInt(document.getElementById('dim-anc').value);
+  const lar=parseInt(document.getElementById('dim-lar').value);
+  const tipo=document.getElementById('dim-tipo').value.trim().toLowerCase();
+  const res=document.getElementById('dim-results');
+  if(!esp&&!anc&&!lar&&!tipo){res.innerHTML='<div style="color:#999;font-size:13px;">Rellena al menos un campo.</div>';return;}
+  const hits=C.filter(r=>{
+    if(esp&&Math.abs(r.esp-esp)>0.05)return false;
+    if(anc&&Math.abs(r.ancho-anc)>50)return false;
+    if(lar&&Math.abs(r.largo-lar)>50)return false;
+    if(tipo&&!r.mat.toLowerCase().includes(tipo)&&!r.name.toLowerCase().includes(tipo))return false;
+    return true;
+  });
+  if(!hits.length){res.innerHTML='<div style="color:#999;font-size:13px;padding:8px 0;">Sin resultados. Prueba con menos filtros o diferentes valores.</div>';return;}
+  res.innerHTML=hits.map(r=>`<div class="dim-item" onclick="pick('${r.ref.replace(/'/g,"\\'")}')"><span class="dim-item-ref">${r.ref}</span> <span class="dim-item-name">· ${r.name}</span></div>`).join('');
+}
+
+function pick(ref){
+  const r=C.find(x=>x.ref===ref);
+  if(!r)return;
+  sel=r;
+  cdd();
+  document.getElementById('d-ref').textContent=r.ref;
+  document.getElementById('d-name').textContent=r.name;
+  document.getElementById('d-esp').textContent=r.esp.toFixed(2)+' mm';
+  document.getElementById('d-med').textContent=r.ancho+'×'+r.largo+' mm';
+  document.getElementById('d-mat').textContent=r.mat;
+  document.getElementById('ref-det').style.display='block';
+  document.getElementById('et-card').style.display='none';
+  document.getElementById('ref-det').scrollIntoView({behavior:'smooth'});
+}
+
+function reg(){
+  if(!sel)return;
+  const r=sel,id=gid(),f=ts();
+  curPalet={id,ref:r.ref,name:r.name,esp:r.esp,ancho:r.ancho,largo:r.largo,mat:r.mat,fecha:f,usuario:uRec,verificado:false,alerta:false,anulado:false};
+  db.palets.push(curPalet);save();
+  document.getElementById('e-id').textContent=id;
+  document.getElementById('e-meta').textContent=f+' · '+uRec;
+  document.getElementById('e-ref').textContent=r.ref;
+  document.getElementById('e-esp').textContent=r.esp.toFixed(2)+' mm';
+  document.getElementById('e-med').textContent=r.ancho+'×'+r.largo+' mm';
+  document.getElementById('e-mat').textContent=r.mat;
+  document.getElementById('qr-wrap').innerHTML='';
+  new QRCode(document.getElementById('qr-wrap'),{text:r.ref,width:150,height:150,correctLevel:QRCode.CorrectLevel.H});
+  document.getElementById('et-card').style.display='block';
+  document.getElementById('et-card').scrollIntoView({behavior:'smooth'});
+}
+
+function imprimir(){
+  if(!curPalet)return;
+  const p=curPalet;
+  const el=document.querySelector('#qr-wrap canvas');
+  let qrImg='';
+  if(el)qrImg=`<img src="${el.toDataURL()}" width="120" height="120">`;
+  const html=Array.from({length:copies}).map(()=>`<div class="label-page"><div class="label-box"><div class="label-id">${p.id}</div><div class="label-ref">${p.ref}</div><div class="label-name">${p.name}</div><div class="label-specs"><div class="label-spec"><div class="label-spec-l">Espesor</div><div class="label-spec-v">${p.esp.toFixed(2)} mm</div></div><div class="label-spec"><div class="label-spec-l">Ancho</div><div class="label-spec-v">${p.ancho} mm</div></div><div class="label-spec"><div class="label-spec-l">Largo</div><div class="label-spec-v">${p.largo} mm</div></div><div class="label-spec"><div class="label-spec-l">Tipo</div><div class="label-spec-v">${p.mat}</div></div></div><div class="label-qr">${qrImg}</div><div class="label-footer">${p.fecha} · ${p.usuario}</div></div></div>`).join('');
+  document.getElementById('print-labels').innerHTML=html;
+  window.print();
+}
+
+function nuevo(){
+  sel=null;copies=1;curPalet=null;
+  document.getElementById('ref-inp').value='';
+  document.getElementById('dim-esp').value='';
+  document.getElementById('dim-anc').value='';
+  document.getElementById('dim-lar').value='';
+  document.getElementById('dim-tipo').value='';
+  document.getElementById('dim-results').innerHTML='';
+  document.getElementById('copies-val').textContent='1';
+  document.getElementById('ref-det').style.display='none';
+  document.getElementById('et-card').style.display='none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function bp(){
+  const cod=document.getElementById('maq-cod').value.trim();
+  const p=db.palets.find(x=>x.id===cod.toUpperCase())||db.palets.find(x=>x.ref===cod);
+  document.getElementById('maq-res').style.display='none';
+  if(!p){document.getElementById('maq-info').style.display='none';document.getElementById('maq-verif').style.display='none';return;}
+  if(p.anulado){document.getElementById('maq-info').style.display='none';document.getElementById('maq-verif').style.display='none';document.getElementById('maq-res').style.display='block';document.getElementById('maq-res').innerHTML='<div class="alert alert-warn">⚠️ Este palet está anulado.</div>';return;}
+  document.getElementById('m-id').textContent=p.id;
+  document.getElementById('m-meta').textContent=p.fecha+' · '+p.usuario;
+  document.getElementById('m-ref').textContent=p.ref;
+  document.getElementById('m-esp').textContent=p.esp.toFixed(2)+' mm';
+  document.getElementById('m-med').textContent=p.ancho+'×'+p.largo+' mm';
+  document.getElementById('m-mat').textContent=p.mat;
+  document.getElementById('maq-info').style.display='block';
+  document.getElementById('maq-verif').style.display='block';
+  document.getElementById('maq-medido').value='';
+}
+
+function verif(){
+  const cod=document.getElementById('maq-cod').value.trim().toUpperCase();
+  const p=db.palets.find(x=>x.id===cod);
+  const res=document.getElementById('maq-res');
+  if(!p)return;
+  const m=parseFloat(document.getElementById('maq-medido').value);
+  if(isNaN(m)||m<=0){res.style.display='block';res.innerHTML='<div class="alert alert-warn">Introduce el espesor medido con el micrómetro.</div>';return;}
+  const diff=Math.abs(m-p.esp),ok=diff<=TOL;
+  p.verificado=true;p.alerta=!ok;p.medido=m;p.usuarioVerif=uMaq;p.fechaVerif=ts();save();
+  res.style.display='block';
+  if(ok){res.innerHTML=`<div class="alert alert-ok">✅ Espesor correcto. Medido: ${m.toFixed(2)} mm · Nominal: ${p.esp.toFixed(2)} mm · Diferencia: ${diff.toFixed(3)} mm</div>`;}
+  else{res.innerHTML=`<div class="alert alert-err">🚨 ALERTA: Espesor fuera de tolerancia.<br>Medido: <strong>${m.toFixed(2)} mm</strong> · Nominal: ${p.esp.toFixed(2)} mm · Diferencia: <strong>${diff.toFixed(3)} mm</strong><br>No procesar. Avisar a calidad.</div>`;}
+  document.getElementById('maq-cod').value='';
+  document.getElementById('maq-info').style.display='none';
+  document.getElementById('maq-verif').style.display='none';
+}
+
+function anular(id){
+  if(!confirm('¿Anular el palet '+id+'?'))return;
+  const p=db.palets.find(x=>x.id===id);
+  if(p){p.anulado=true;p.fechaAnulacion=ts();save();rh();}
+}
+
+// CAMERA QR SCANNER
+let camStream=null, camActive=false, detector=null;
+
+async function toggleCam(){
+  if(camActive){stopCam();return;}
+  // Try BarcodeDetector first (Chrome Android)
+  if('BarcodeDetector' in window){
+    detector=new BarcodeDetector({formats:['qr_code']});
+  }
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    alert('Tu navegador no soporta la cámara. Usa Chrome actualizado.');
+    return;
+  }
+  try{
+    camStream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}
+    });
+    camActive=true;
+    const video=document.getElementById('cam-video');
+    video.srcObject=camStream;
+    await video.play();
+    document.getElementById('cam-wrap').style.display='block';
+    document.getElementById('cam-hint').style.display='block';
+    document.getElementById('btn-cam').textContent='⏹ Detener cámara';
+    document.getElementById('btn-cam').classList.add('active');
+    scanLoop();
+  }catch(err){
+    alert('Error cámara: '+err.message);
+  }
+}
+
+function stopCam(){
+  if(camStream)camStream.getTracks().forEach(t=>t.stop());
+  camStream=null;camActive=false;
+  document.getElementById('cam-wrap').style.display='none';
+  document.getElementById('cam-hint').style.display='none';
+  document.getElementById('btn-cam').textContent='📷 Escanear con cámara';
+  document.getElementById('btn-cam').classList.remove('active');
+}
+
+async function scanLoop(){
+  if(!camActive)return;
+  const video=document.getElementById('cam-video');
+  try{
+    if(detector){
+      const codes=await detector.detect(video);
+      if(codes.length>0){
+        const val=codes[0].rawValue.trim();
+        onQRDetected(val);
+        return;
+      }
+    } else {
+      // Fallback: canvas snapshot
+      if(video.readyState===video.HAVE_ENOUGH_DATA){
+        const c=document.createElement('canvas');
+        c.width=video.videoWidth;c.height=video.videoHeight;
+        c.getContext('2d').drawImage(video,0,0);
+        // Just show hint that BarcodeDetector not available
+        document.getElementById('cam-hint').textContent='Cámara activa — escribe el código manualmente si no detecta';
+      }
+    }
+  }catch(e){}
+  setTimeout(scanLoop,300);
+}
+
+function onQRDetected(val){
+  stopCam();
+  document.getElementById('maq-cod').value=val;
+  bp();
+}
+
+function showQR(id){
+  const p=db.palets.find(x=>x.id===id);
+  if(!p)return;
+  document.getElementById('modal-id').textContent=p.id;
+  document.getElementById('modal-name').textContent=p.name;
+  const qrDiv=document.getElementById('modal-qr');
+  qrDiv.innerHTML='';
+  new QRCode(qrDiv,{text:p.ref,width:180,height:180,correctLevel:QRCode.CorrectLevel.H});
+  document.getElementById('qr-modal').classList.add('open');
+}
+function closeModal(e){if(e.target.id==='qr-modal')document.getElementById('qr-modal').classList.remove('open');}
+
+function rh(){
+  const act=db.palets.filter(p=>!p.anulado);
+  document.getElementById('st-tot').textContent=act.length;
+  document.getElementById('st-ok').textContent=act.filter(p=>p.verificado&&!p.alerta).length;
+  document.getElementById('st-err').textContent=act.filter(p=>p.alerta).length;
+  const lista=document.getElementById('hist-lista');
+  if(!db.palets.length){lista.innerHTML='<div style="color:#999;font-size:14px;padding:1rem 0;text-align:center;">Sin registros todavía</div>';return;}
+  lista.innerHTML=[...db.palets].reverse().slice(0,40).map(p=>{
+    const badge=p.anulado?'<span class="badge badge-anul">Anulado</span>':p.alerta?'<span class="badge badge-err">⚠️ Alerta</span>':p.verificado?'<span class="badge badge-ok">✅ OK</span>':'<span class="badge badge-pend">Pendiente</span>';
+    return `<div class="hi" style="${p.anulado?'opacity:.5':''}"><div class="hi-top"><div class="hi-id">${p.id}</div>${badge}</div><div class="hi-name">${p.name||p.ref}</div><div class="hi-meta">${p.esp.toFixed(2)} mm · ${p.ancho}×${p.largo} mm · ${p.fecha} · ${p.usuario}${p.verificado&&!p.anulado?' · ✓ '+p.usuarioVerif:''}</div>${!p.anulado?`<div class="hi-actions"><button class="btn btn-secondary btn-sm btn-danger" onclick="anular('${p.id}')">Anular</button></div>`:''}</div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
